@@ -321,7 +321,7 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
   <div class="login-box">
     <div id="usuario" class="usuario">No logueado</div>
     <div id="g_id_onload"
-         data-client_id="143500420704-10l3oj33bt1hpdnf2i91hpupk24uh3bh.apps.googleusercontent.com"
+         data-client_id="TU_CLIENT_ID_GOOGLE.apps.googleusercontent.com"
          data-callback="handleCredentialResponse">
     </div>
     <div class="g_id_signin"></div>
@@ -432,13 +432,6 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
     <div class="input-group">
       <i class="fa fa-briefcase"></i>
       <input id="rubro" placeholder="Rubro / actividad principal">
-    </div>
-
-    <!-- FOTO -->
-    <div class="section-title">Foto</div>
-    <div class="input-group">
-      <i class="fa fa-camera"></i>
-      <input type="file" id="foto" accept="image/*" capture="environment">
     </div>
 
     <!-- OBSERVACIONES -->
@@ -563,9 +556,6 @@ function enviar() {
   document.querySelectorAll('input[name="tipo"]:checked').forEach(c => tipos.push(c.value));
   formData.append("tipo", tipos.join(", "));
 
-  const file = document.getElementById("foto").files[0];
-  if (file) formData.append("foto", file);
-
   fetch(API + "/guardar-cooperativa", {
     method: "POST",
     body: formData
@@ -588,7 +578,6 @@ function resetForm() {
    "referente_tel","referente_email","cantidad_asociados","rubro","observaciones"]
     .forEach(id => document.getElementById(id).value = "");
   document.getElementById("estado").value = "";
-  document.getElementById("foto").value = "";
   document.querySelectorAll('input[name="tipo"]').forEach(c => c.checked = false);
   document.getElementById("contador").innerText = "0 / 200";
 }
