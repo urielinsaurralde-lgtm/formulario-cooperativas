@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f0f4ff;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 480px;
+  padding: 15px;
+}
+
+/* ─── HEADER ─────────────────────────────────────── */
+.header-box {
+  background: #1e3a8a;
+  color: white;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(30,58,138,0.3);
+}
+
+.header-box h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.header-box p {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 4px;
+}
+
+/* ─── LOGIN ──────────────────────────────────────── */
+.login-box {
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.usuario {
+  font-size: 14px;
+  color: #1e3a8a;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+/* ─── MAPA ───────────────────────────────────────── */
+.map-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1e3a8a;
+  text-align: center;
+  font-size: 15px;
+}
+
+.map-box {
+  width: 100%;
+  height: 250px;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  margin-bottom: 15px;
+}
+
+#map { width: 100%; height: 100%; }
+
+.map-box.fullscreen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 9999;
+  border-radius: 0;
+}
+
+.pin {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -100%);
+  font-size: 28px;
+  z-index: 1000;
+  color: #2563eb;
+}
+
+.map-controls {
+  position: absolute;
+  top: 8px; right: 8px;
+  z-index: 1001;
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(8px);
+  padding: 4px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.map-controls button {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #1e3a8a;
+  transition: all 0.2s ease;
+  width: auto; height: auto; margin-top: 0;
+}
+
+.map-controls button:hover { background: #e5e7eb; }
+
+.gps-btn {
+  position: absolute;
+  bottom: 8px; right: 8px;
+  z-index: 1001;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0;
+}
+
+.gps-btn i { font-size: 16px; color: #2563eb; }
+
+.fullscreen-btn {
+  position: absolute;
+  bottom: 8px; left: 8px;
+  z-index: 1001;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0;
+}
+
+.fullscreen-btn i { font-size: 16px; color: #2563eb; }
+
+/* ─── FORMULARIO ─────────────────────────────────── */
+.form {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+h2 { text-align: center; margin-bottom: 6px; color: #1e3a8a; font-size: 17px; }
+
+.form-subtitle {
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 18px;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e3a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 16px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid #dbeafe;
+}
+
+.input-group { position: relative; margin-bottom: 10px; }
+
+.input-group i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #3b82f6;
+}
+
+input, textarea, select {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #1e3a8a;
+  color: white;
+  font-size: 15px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+input {
+  height: 46px;
+  padding-left: 40px;
+}
+
+select {
+  height: 46px;
+  padding-left: 40px;
+  appearance: none;
+  cursor: pointer;
+}
+
+textarea {
+  padding: 10px 10px 10px 40px;
+  height: 80px;
+  resize: none;
+}
+
+input::placeholder, textarea::placeholder { color: #93c5fd; }
+select option { background: #1e3a8a; color: white; }
+
+/* ─── CHIPS ──────────────────────────────────────── */
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.chip input { display: none; }
+
+.chip span {
+  display: inline-block;
+  padding: 7px 13px;
+  border-radius: 20px;
+  background: #f1f5f9;
+  color: #1e3a8a;
+  cursor: pointer;
+  font-size: 13px;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s;
+}
+
+.chip input:checked + span {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.section-label {
+  font-size: 13px;
+  color: #1e3a8a;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.char-counter {
+  text-align: right;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+/* ─── BOTÓN ──────────────────────────────────────── */
+button#btnEnviar {
+  width: 100%;
+  height: 50px;
+  margin-top: 14px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.2s;
+}
+
+button#btnEnviar:hover { background: #1d4ed8; }
+button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
+
+.loader {
+  display: none;
+  text-align: center;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 14px;
+}
+
+.required-mark { color: #ef4444; margin-left: 2px; }
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header-box">
+    <h1>🤝 Relevamiento de Cooperativas</h1>
+    <p>Registro de cooperativas mixtas — Corrientes</p>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="login-box">
+    <div id="usuario" class="usuario">No logueado</div>
+    <div id="g_id_onload"
+         data-client_id="143500420704-10l3oj33bt1hpdnf2i91hpupk24uh3bh.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin"></div>
+  </div>
+
+  <!-- MAPA -->
+  <div class="map-title">📍 Ubicación de la cooperativa</div>
+  <div class="map-box" id="mapBox">
+    <div id="map"></div>
+    <div class="pin"><i class="fa-solid fa-location-dot"></i></div>
+
+    <div class="map-controls">
+      <button onclick="cambiarCapa('mapa')" title="Mapa">🗺️</button>
+      <button onclick="cambiarCapa('satelite')" title="Satélite">🛰️</button>
+      <button onclick="cambiarCapa('hibrido')" title="Híbrido">🌐</button>
+      <button onclick="cambiarCapa('google')" title="Google">🟡</button>
+    </div>
+
+    <button class="gps-btn" onclick="irMiUbicacion()" title="Mi ubicación">
+      <i class="fa-solid fa-location-crosshairs"></i>
+    </button>
+
+    <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla completa">
+      <i class="fa-solid fa-expand"></i>
+    </button>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="form">
+    <h2>📋 Datos del Relevamiento</h2>
+    <p class="form-subtitle">Los campos marcados con <span class="required-mark">*</span> son obligatorios</p>
+
+    <!-- DATOS DE LA COOPERATIVA -->
+    <div class="section-title">Datos de la cooperativa</div>
+
+    <div class="input-group">
+      <i class="fa fa-building"></i>
+      <input id="nombre_coop" placeholder="Nombre de la cooperativa *">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-hashtag"></i>
+      <input id="matricula" placeholder="Matrícula">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-id-badge"></i>
+      <input id="cuit" type="number" placeholder="CUIT">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-map-marker-alt"></i>
+      <input id="direccion" placeholder="Dirección">
+    </div>
+
+    <!-- TIPO -->
+    <div class="section-title">Tipo de cooperativa</div>
+    <div class="chips-container" id="chips-tipo">
+      <label class="chip"><input type="checkbox" name="tipo" value="Trabajo"><span>Trabajo</span></label>
+      <label class="chip"><input type="checkbox" name="tipo" value="Vivienda"><span>Vivienda</span></label>
+      <label class="chip"><input type="checkbox" name="tipo" value="Agropecuaria"><span>Agropecuaria</span></label>
+      <label class="chip"><input type="checkbox" name="tipo" value="Consumo"><span>Consumo</span></label>
+      <label class="chip"><input type="checkbox" name="tipo" value="Servicios"><span>Servicios</span></label>
+      <label class="chip"><input type="checkbox" name="tipo" value="Mixta"><span>Mixta</span></label>
+      <label class="chip"><input type="checkbox" name="tipo" value="Otra"><span>Otra</span></label>
+    </div>
+
+    <!-- ESTADO -->
+    <div class="section-title">Estado</div>
+    <div class="input-group">
+      <i class="fa fa-circle-check"></i>
+      <select id="estado">
+        <option value="" disabled selected>Seleccionar estado...</option>
+        <option value="Activa">Activa</option>
+        <option value="Inactiva">Inactiva</option>
+        <option value="En formación">En formación</option>
+        <option value="Suspendida">Suspendida</option>
+        <option value="Disuelta">Disuelta</option>
+      </select>
+    </div>
+
+    <!-- DATOS DEL REFERENTE -->
+    <div class="section-title">Referente / Presidente</div>
+
+    <div class="input-group">
+      <i class="fa fa-user"></i>
+      <input id="referente_nombre" placeholder="Nombre y apellido del referente">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-phone"></i>
+      <input id="referente_tel" type="tel" placeholder="Teléfono de contacto">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-envelope"></i>
+      <input id="referente_email" type="email" placeholder="Email de contacto">
+    </div>
+
+    <!-- ASOCIADOS Y ACTIVIDAD -->
+    <div class="section-title">Actividad y asociados</div>
+
+    <div class="input-group">
+      <i class="fa fa-users"></i>
+      <input id="cantidad_asociados" type="number" placeholder="Cantidad de asociados">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-briefcase"></i>
+      <input id="rubro" placeholder="Rubro / actividad principal">
+    </div>
+
+    <!-- FOTO -->
+    <div class="section-title">Foto</div>
+    <div class="input-group">
+      <i class="fa fa-camera"></i>
+      <input type="file" id="foto" accept="image/*" capture="environment">
+    </div>
+
+    <!-- OBSERVACIONES -->
+    <div class="section-title">Observaciones</div>
+    <div class="input-group">
+      <i class="fa fa-comment" style="top:18px;transform:none;"></i>
+      <textarea id="observaciones" maxlength="200" placeholder="Observaciones adicionales..."></textarea>
+    </div>
+    <div class="char-counter" id="contador">0 / 200</div>
+
+    <button id="btnEnviar" onclick="enviar()">ENVIAR RELEVAMIENTO</button>
+    <div class="loader" id="loader">⏳ Enviando datos...</div>
+  </div>
+
+</div>
+
+<script>
+const API = "https://api-cooperativas.onrender.com"; // ← Cambiar por tu URL real
+
+// ─── LOGIN ────────────────────────────────────────
+let usuario = null;
+
+function handleCredentialResponse(response) {
+  const data = JSON.parse(atob(response.credential.split('.')[1]));
+  usuario = data;
+  document.getElementById("usuario").innerText = "👤 " + data.name;
+
+  fetch(API + "/registrar-operador", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nombre: data.name, email: data.email })
+  });
+}
+
+// ─── MAPA ─────────────────────────────────────────
+let map, lat = -27.48, lng = -58.83, capaActual, capas = {};
+
+function iniciarMapa() {
+  map = L.map('map').setView([lat, lng], 14);
+
+  const mapa      = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+  const satelite  = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+  const etiquetas = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png');
+  const lugares   = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', { opacity: 0.3 });
+  const hibrido   = L.layerGroup([satelite, lugares, etiquetas]);
+  const google    = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}');
+
+  capas = { mapa, satelite, hibrido, google };
+  capaActual = google;
+  capaActual.addTo(map);
+
+  map.on("move", () => { let c = map.getCenter(); lat = c.lat; lng = c.lng; });
+  irMiUbicacion();
+}
+
+function cambiarCapa(tipo) {
+  if (capaActual) map.removeLayer(capaActual);
+  capaActual = capas[tipo];
+  capaActual.addTo(map);
+}
+
+function irMiUbicacion() {
+  navigator.geolocation.getCurrentPosition(p => {
+    lat = p.coords.latitude;
+    lng = p.coords.longitude;
+    map.setView([lat, lng], 16);
+  });
+}
+
+function toggleFullscreen() {
+  document.getElementById("mapBox").classList.toggle("fullscreen");
+  setTimeout(() => map.invalidateSize(), 300);
+}
+
+// ─── CONTADOR ─────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("observaciones").addEventListener("input", function () {
+    document.getElementById("contador").innerText = this.value.length + " / 200";
+  });
+});
+
+window.onload = () => iniciarMapa();
+
+// ─── ENVIAR ───────────────────────────────────────
+function enviar() {
+  if (!usuario) {
+    alert("⚠️ Debe iniciar sesión con Google para enviar el formulario.");
+    return;
+  }
+
+  const nombre_coop = document.getElementById("nombre_coop").value.trim();
+  if (!nombre_coop) {
+    alert("⚠️ El nombre de la cooperativa es obligatorio.");
+    return;
+  }
+
+  const boton  = document.getElementById("btnEnviar");
+  const loader = document.getElementById("loader");
+  boton.disabled = true;
+  boton.innerText = "Enviando...";
+  loader.style.display = "block";
+
+  let formData = new FormData();
+
+  formData.append("nombre_coop",        nombre_coop);
+  formData.append("matricula",          document.getElementById("matricula").value);
+  formData.append("cuit",               document.getElementById("cuit").value);
+  formData.append("direccion",          document.getElementById("direccion").value);
+  formData.append("estado",             document.getElementById("estado").value);
+  formData.append("referente_nombre",   document.getElementById("referente_nombre").value);
+  formData.append("referente_tel",      document.getElementById("referente_tel").value);
+  formData.append("referente_email",    document.getElementById("referente_email").value);
+  formData.append("cantidad_asociados", document.getElementById("cantidad_asociados").value);
+  formData.append("rubro",              document.getElementById("rubro").value);
+  formData.append("observaciones",      document.getElementById("observaciones").value);
+  formData.append("lat",                lat);
+  formData.append("lng",                lng);
+  formData.append("operador_nombre",    usuario.name);
+  formData.append("operador_email",     usuario.email);
+
+  let tipos = [];
+  document.querySelectorAll('input[name="tipo"]:checked').forEach(c => tipos.push(c.value));
+  formData.append("tipo", tipos.join(", "));
+
+  const file = document.getElementById("foto").files[0];
+  if (file) formData.append("foto", file);
+
+  fetch(API + "/guardar-cooperativa", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Error servidor");
+    alert("✅ Cooperativa registrada correctamente.");
+    resetForm();
+  })
+  .catch(() => alert("❌ Error al enviar. Intente nuevamente."))
+  .finally(() => {
+    boton.disabled = false;
+    boton.innerText = "ENVIAR RELEVAMIENTO";
+    loader.style.display = "none";
+  });
+}
+
+function resetForm() {
+  ["nombre_coop","matricula","cuit","direccion","referente_nombre",
+   "referente_tel","referente_email","cantidad_asociados","rubro","observaciones"]
+    .forEach(id => document.getElementById(id).value = "");
+  document.getElementById("estado").value = "";
+  document.getElementById("foto").value = "";
+  document.querySelectorAll('input[name="tipo"]').forEach(c => c.checked = false);
+  document.getElementById("contador").innerText = "0 / 200";
+}
+</script>
+</body>
+</html>
