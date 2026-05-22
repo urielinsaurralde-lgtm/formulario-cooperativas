@@ -1,4 +1,4 @@
-const CACHE_NAME = "cooperativas-v6";
+const CACHE_NAME = "cooperativas-v7";
 
 const ASSETS = [
   "/",
