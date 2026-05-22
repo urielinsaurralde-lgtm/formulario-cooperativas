@@ -344,6 +344,55 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
   to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
 }
 
+
+/* ── BANNER OFFLINE ── */
+#banner-offline {
+  display: none;
+  background: #92400e;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── BADGE PENDIENTES ── */
+#badge-pendientes {
+  display: none;
+  background: #1e3a8a;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e3a8a;
+  color: white;
+  padding: 12px 22px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.4s;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
 </style>
 </head>
 
@@ -355,6 +404,18 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
     <h1>🤝 Relevamiento de Cooperativas</h1>
     <p>Registro de cooperativas mixtas — Corrientes</p>
   </div>
+
+
+  <!-- BANNER OFFLINE -->
+  <div id="banner-offline">
+    ⚡ Sin conexión — los formularios se guardarán localmente
+  </div>
+
+  <!-- BADGE PENDIENTES -->
+  <div id="badge-pendientes" onclick="reenviarManual()"></div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
 
   <!-- LOGIN -->
   <div class="login-box">
@@ -552,10 +613,122 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-window.onload = () => iniciarMapa();
+window.onload = () => { iniciarMapa(); actualizarBannerOffline(); actualizarBadgePendientes(); };
+
+async function reenviarManual() {
+  if (!navigator.onLine) {
+    mostrarToast("⚠️ Todavía sin conexión. Intentá más tarde.");
+    return;
+  }
+  const { enviados, total } = await enviarPendientesDesdeApp();
+  mostrarToast(enviados > 0
+    ? "✅ " + enviados + " de " + total + " formulario(s) enviado(s)"
+    : "ℹ️ No se pudo enviar aún. Intentá más tarde.");
+  actualizarBadgePendientes();
+}
+
 
 // ─── ENVIAR ───────────────────────────────────────
-function enviar() {
+// ── IndexedDB: guardar offline ───────────────────────
+function abrirDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open("coopOfflineDB", 1);
+    req.onupgradeneeded = e =>
+      e.target.result.createObjectStore("pendientes", { keyPath: "id", autoIncrement: true });
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function guardarOffline(datos) {
+  const db = await abrirDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("pendientes", "readwrite");
+    tx.objectStore("pendientes").add({ url: API + "/guardar-cooperativa", data: datos });
+    tx.oncomplete = resolve;
+    tx.onerror    = e => reject(e.target.error);
+  });
+}
+
+async function contarPendientes() {
+  const db = await abrirDB();
+  return new Promise(resolve => {
+    const req = db.transaction("pendientes", "readonly").objectStore("pendientes").count();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = () => resolve(0);
+  });
+}
+
+async function enviarPendientesDesdeApp() {
+  const db = await abrirDB();
+  const todos = await new Promise((resolve, reject) => {
+    const req = db.transaction("pendientes", "readonly").objectStore("pendientes").getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+
+  let enviados = 0;
+  for (const item of todos) {
+    try {
+      const fd = new FormData();
+      Object.entries(item.data).forEach(([k, v]) => fd.append(k, v));
+      const res = await fetch(item.url, { method: "POST", body: fd });
+      if (res.ok) {
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction("pendientes", "readwrite");
+          tx.objectStore("pendientes").delete(item.id);
+          tx.oncomplete = resolve;
+          tx.onerror    = e => reject(e.target.error);
+        });
+        enviados++;
+      }
+    } catch (e) { /* sigue con el siguiente */ }
+  }
+  return { enviados, total: todos.length };
+}
+
+// ── Reenviar cuando vuelve la red ────────────────────
+window.addEventListener("online", async () => {
+  actualizarBannerOffline();
+  const n = await contarPendientes();
+  if (n > 0) {
+    const { enviados } = await enviarPendientesDesdeApp();
+    if (enviados > 0) mostrarToast(`✅ ${enviados} formulario(s) enviado(s) automáticamente`);
+    actualizarBadgePendientes();
+  }
+});
+
+window.addEventListener("offline", () => actualizarBannerOffline());
+
+function actualizarBannerOffline() {
+  const banner = document.getElementById("banner-offline");
+  if (!navigator.onLine) {
+    banner.style.display = "flex";
+  } else {
+    banner.style.display = "none";
+  }
+}
+
+async function actualizarBadgePendientes() {
+  const n = await contarPendientes();
+  const badge = document.getElementById("badge-pendientes");
+  if (n > 0) {
+    badge.textContent = `📦 ${n} formulario(s) guardado(s) sin enviar`;
+    badge.style.display = "block";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+function mostrarToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.opacity = "1";
+  setTimeout(() => t.style.opacity = "0", 3500);
+}
+
+// ── ENVIAR ────────────────────────────────────────────
+async function enviar() {
   if (!usuario) {
     alert("⚠️ Debe iniciar sesión con Google para enviar el formulario.");
     return;
@@ -573,43 +746,60 @@ function enviar() {
   boton.innerText = "Enviando...";
   loader.style.display = "block";
 
-  let formData = new FormData();
-
-  formData.append("nombre_coop",        nombre_coop);
-  formData.append("matricula",          document.getElementById("matricula").value);
-  formData.append("cuit",               document.getElementById("cuit").value);
-  formData.append("direccion",          document.getElementById("direccion").value);
-  formData.append("estado",             document.getElementById("estado").value);
-  formData.append("referente_nombre",   document.getElementById("referente_nombre").value);
-  formData.append("referente_tel",      document.getElementById("referente_tel").value);
-  formData.append("referente_email",    document.getElementById("referente_email").value);
-  formData.append("cantidad_asociados", document.getElementById("cantidad_asociados").value);
-  formData.append("rubro",              document.getElementById("rubro").value);
-  formData.append("observaciones",      document.getElementById("observaciones").value);
-  formData.append("lat",                lat);
-  formData.append("lng",                lng);
-  formData.append("operador_nombre",    usuario.name);
-  formData.append("operador_email",     usuario.email);
-
   let tipos = [];
   document.querySelectorAll('input[name="tipo"]:checked').forEach(c => tipos.push(c.value));
-  formData.append("tipo", tipos.join(", "));
 
-  fetch(API + "/guardar-cooperativa", {
-    method: "POST",
-    body: formData
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("Error servidor");
-    alert("✅ Cooperativa registrada correctamente.");
+  const datos = {
+    nombre_coop:        nombre_coop,
+    matricula:          document.getElementById("matricula").value,
+    cuit:               document.getElementById("cuit").value,
+    direccion:          document.getElementById("direccion").value,
+    estado:             document.getElementById("estado").value,
+    referente_nombre:   document.getElementById("referente_nombre").value,
+    referente_tel:      document.getElementById("referente_tel").value,
+    referente_email:    document.getElementById("referente_email").value,
+    cantidad_asociados: document.getElementById("cantidad_asociados").value,
+    rubro:              document.getElementById("rubro").value,
+    observaciones:      document.getElementById("observaciones").value,
+    lat:                lat,
+    lng:                lng,
+    operador_nombre:    usuario.name,
+    operador_email:     usuario.email,
+    tipo:               tipos.join(", ")
+  };
+
+  // ── Sin conexión: guardar localmente ─────────────────
+  if (!navigator.onLine) {
+    await guardarOffline(datos);
+    mostrarToast("📦 Sin conexión — guardado localmente. Se enviará cuando vuelva la red.");
     resetForm();
-  })
-  .catch(() => alert("❌ Error al enviar. Intente nuevamente."))
-  .finally(() => {
+    actualizarBadgePendientes();
     boton.disabled = false;
     boton.innerText = "ENVIAR RELEVAMIENTO";
     loader.style.display = "none";
-  });
+    return;
+  }
+
+  // ── Con conexión: enviar directo ─────────────────────
+  const formData = new FormData();
+  Object.entries(datos).forEach(([k, v]) => formData.append(k, v));
+
+  try {
+    const res = await fetch(API + "/guardar-cooperativa", { method: "POST", body: formData });
+    if (!res.ok) throw new Error("Error servidor");
+    mostrarToast("✅ Cooperativa registrada correctamente.");
+    resetForm();
+  } catch (e) {
+    // Falló aunque había red: guardar offline igual
+    await guardarOffline(datos);
+    mostrarToast("📦 Error de red — guardado localmente. Se enviará cuando vuelva la red.");
+    resetForm();
+    actualizarBadgePendientes();
+  } finally {
+    boton.disabled = false;
+    boton.innerText = "ENVIAR RELEVAMIENTO";
+    loader.style.display = "none";
+  }
 }
 
 function resetForm() {
