@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
 <link rel="stylesheet"
-href="/assets/fontawesome/css/all.min.css"/> rel="stylesheet">
+href="/assets/fontawesome/css/all.min.css"/>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" href="/assets/leaflet/leaflet.css"/>
 <script src="/assets/leaflet/leaflet.js"></script>
@@ -797,10 +797,6 @@ async function contarPendientes() {
       }
     }
 
-    actualizarPendientes();
-  };
-}
-
 async function enviarPendientesDesdeApp() {
   const db = await abrirDB();
   const todos = await new Promise((resolve, reject) => {
@@ -831,20 +827,22 @@ async function enviarPendientesDesdeApp() {
 
 // ── Red ───────────────────────────────────────────
 window.addEventListener("online", async () => {
-  actualizarBannerOffline();
-  const n = await contarPendientes();
-  if (n > 0) {
-    const { enviados } = await enviarPendientesDesdeApp();
-    if (enviados > 0) mostrarToast(`✅ ${enviados} formulario(s) enviado(s) automáticamente`);
-    actualizarBadgePendientes();
+ function actualizarBannerOffline() {
+
+  const banner = document.getElementById("offlineBanner");
+
+  if (!banner) return;
+
+  if (navigator.onLine) {
+
+    banner.innerHTML = "🟢 Conectado";
+    banner.style.background = "#16a34a";
+
+  } else {
+
+    banner.innerHTML = "🔴 Modo Offline";
+    banner.style.background = "#dc2626";
   }
-});
-
-window.addEventListener("offline", () => actualizarBannerOffline());
-
-function actualizarBannerOffline() {
-  const banner = document.getElementById("banner-offline");
-  banner.style.display = !navigator.onLine ? "flex" : "none";
 }
 
 async function actualizarBadgePendientes() {
@@ -863,6 +861,9 @@ function mostrarToast(msg) {
   t.textContent = msg;
   t.style.opacity = "1";
   setTimeout(() => t.style.opacity = "0", 3500);
+}
+  function actualizarPendientes() {
+  actualizarBadgePendientes();
 }
 
 // ── ENVIAR ────────────────────────────────────────
@@ -948,15 +949,6 @@ function resetForm() {
   document.getElementById("contador").innerText = "0 / 200";
 }
 
-// ── SERVICE WORKER ────────────────────────────────
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('✅ SW registrado:', reg.scope))
-      .catch(err => console.log('❌ SW error:', err));
-  });
-}
-
 // ── INSTALAR PWA ──────────────────────────────────
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
@@ -993,7 +985,7 @@ function instalarPWA() {
   }
 }
 
-window.addEventListener("online", async () => {
+window.addEventListener("load", () => {
 
   actualizarEstadoConexion();
 
