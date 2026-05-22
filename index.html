@@ -392,8 +392,42 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 }
 </style>
 </head>
+<script>
 
+if ('serviceWorker' in navigator) {
+
+  window.addEventListener('load', async () => {
+
+    try {
+
+      const reg = await navigator.serviceWorker.register('/sw.js');
+
+      console.log('✅ SW registrado');
+
+    } catch (e) {
+
+      console.error('❌ Error SW', e);
+    }
+  });
+}
+
+</script>
 <body>
+  <div id="offlineBanner"
+style="
+position:fixed;
+top:0;
+left:0;
+width:100%;
+padding:10px;
+text-align:center;
+font-weight:bold;
+color:white;
+z-index:99999;
+background:#16a34a;
+">
+🟢 Conectado
+</div>
 <div class="wrapper">
 
   <!-- HEADER -->
@@ -665,24 +699,58 @@ async function reenviarManual() {
 // ── IndexedDB ────────────────────────────────────
 function abrirDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open("coopOfflineDB", 1);
-    req.onupgradeneeded = e =>
-      e.target.result.createObjectStore("pendientes", { keyPath: "id", autoIncrement: true });
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
+
+    const request = indexedDB.open("cooperativasDB", 1);
+
+
+    request.onupgradeneeded = e => {
+
+      const db = e.target.result;
+
+      if (!db.objectStoreNames.contains("pendientes")) {
+
+        db.createObjectStore("pendientes", {
+          keyPath: "id",
+          autoIncrement: true
+        });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+
+    request.onerror = () => reject(request.error);
   });
 }
 
 async function guardarOffline(datos) {
-  const db = await abrirDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction("pendientes", "readwrite");
-    tx.objectStore("pendientes").add({ url: API + "/guardar-cooperativa", data: datos });
-    tx.oncomplete = resolve;
-    tx.onerror    = e => reject(e.target.error);
-  });
-}
 
+  const db = await abrirDB();
+
+  await new Promise((resolve, reject) => {
+
+    const tx = db.transaction("pendientes", "readwrite");
+
+    tx.objectStore("pendientes").add({
+      url: API + "/guardar-cooperativa",
+      data: datos,
+      fecha: new Date().toISOString()
+    });
+
+    tx.oncomplete = resolve;
+
+    tx.onerror = e => reject(e.target.error);
+  });
+
+  actualizarPendientes();
+
+  // Background Sync
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+
+    const reg = await navigator.serviceWorker.ready;
+
+    await reg.sync.register('sync-cooperativas');
+  }
+}
 async function contarPendientes() {
   const db = await abrirDB();
   return new Promise(resolve => {
@@ -690,6 +758,46 @@ async function contarPendientes() {
     req.onsuccess = e => resolve(e.target.result);
     req.onerror   = () => resolve(0);
   });
+}
+  async function sincronizarPendientes() {
+
+  if (!navigator.onLine) return;
+
+  const db = await abrirDB();
+
+  const tx = db.transaction("pendientes", "readwrite");
+
+  const store = tx.objectStore("pendientes");
+
+  const request = store.getAll();
+
+  request.onsuccess = async () => {
+
+    for (const item of request.result) {
+
+      try {
+
+        const formData = new FormData();
+
+        Object.keys(item.data).forEach(key => {
+          formData.append(key, item.data[key]);
+        });
+
+        await fetch(item.url, {
+          method: "POST",
+          body: formData
+        });
+
+        store.delete(item.id);
+
+      } catch (e) {
+
+        console.log("Sigue offline");
+      }
+    }
+
+    actualizarPendientes();
+  };
 }
 
 async function enviarPendientesDesdeApp() {
@@ -864,6 +972,36 @@ function instalarPWA() {
     document.getElementById('btn-instalar').style.display = 'none';
   });
 }
+  function actualizarEstadoConexion() {
+
+  const estado = navigator.onLine;
+
+  const banner = document.getElementById("offlineBanner");
+
+  if (!banner) return;
+
+  if (estado) {
+
+    banner.innerHTML = "🟢 Conectado";
+    banner.style.background = "#16a34a";
+
+  } else {
+
+    banner.innerHTML = "🔴 Modo Offline";
+    banner.style.background = "#dc2626";
+  }
+}
+
+window.addEventListener("online", async () => {
+
+  actualizarEstadoConexion();
+
+  await sincronizarPendientes();
+});
+
+window.addEventListener("offline", actualizarEstadoConexion);
+
+actualizarEstadoConexion();
 </script>
 
 </body>
