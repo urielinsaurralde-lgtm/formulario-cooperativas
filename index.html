@@ -10,438 +10,598 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cooperativas">
+
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
+<!-- FONT AWESOME CDN -->
 <link rel="stylesheet"
-href="/assets/fontawesome/css/all.min.css"/>
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- GOOGLE -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- LEAFLET -->
 <link rel="stylesheet" href="/assets/leaflet/leaflet.css"/>
 <script src="/assets/leaflet/leaflet.js"></script>
 
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #f0f4ff;
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
-.wrapper {
-  width: 100%;
-  max-width: 480px;
-  padding: 15px;
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:#f0f4ff;
+  width:100%;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
 }
 
-/* ─── HEADER ─────────────────────────────────────── */
-.header-box {
-  background: #1e3a8a;
-  color: white;
-  border-radius: 14px;
-  padding: 16px 20px;
-  margin-bottom: 12px;
-  text-align: center;
-  box-shadow: 0 4px 14px rgba(30,58,138,0.3);
+.wrapper{
+  width:100%;
+  max-width:480px;
+  padding:15px;
 }
 
-.header-box h1 {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+/* HEADER */
+.header-box{
+  background:#1e3a8a;
+  color:white;
+  border-radius:14px;
+  padding:16px 20px;
+  margin-bottom:12px;
+  text-align:center;
+  box-shadow:0 4px 14px rgba(30,58,138,0.3);
 }
 
-.header-box p {
-  font-size: 12px;
-  opacity: 0.75;
-  margin-top: 4px;
+.header-box h1{
+  font-size:18px;
+  font-weight:700;
 }
 
-/* ─── LOGIN ──────────────────────────────────────── */
-.login-box {
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  text-align: center;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+.header-box p{
+  font-size:12px;
+  opacity:0.8;
+  margin-top:4px;
 }
 
-.usuario {
-  font-size: 14px;
-  color: #1e3a8a;
-  margin-bottom: 5px;
-  font-weight: 600;
+/* LOGIN */
+.login-box{
+  background:white;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:10px;
+  text-align:center;
+  box-shadow:0 3px 10px rgba(0,0,0,0.08);
 }
 
-/* ─── MAPA ───────────────────────────────────────── */
-.map-title {
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #1e3a8a;
-  text-align: center;
-  font-size: 15px;
+.usuario{
+  font-size:14px;
+  color:#1e3a8a;
+  margin-bottom:5px;
+  font-weight:600;
 }
 
-.map-box {
-  width: 100%;
-  height: 250px;
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  margin-bottom: 15px;
+/* MAPA */
+.map-title{
+  font-weight:600;
+  margin-bottom:8px;
+  color:#1e3a8a;
+  text-align:center;
+  font-size:15px;
 }
 
-#map { width: 100%; height: 100%; }
-
-.map-box.fullscreen {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  z-index: 9999;
-  border-radius: 0;
+.map-box{
+  width:100%;
+  height:250px;
+  position:relative;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 4px 12px rgba(0,0,0,0.12);
+  margin-bottom:15px;
 }
 
-.pin {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -100%);
-  font-size: 28px;
-  z-index: 1000;
-  color: #2563eb;
+#map{
+  width:100%;
+  height:100%;
 }
 
-.map-controls {
-  position: absolute;
-  top: 8px; right: 8px;
-  z-index: 1001;
-  display: flex;
-  gap: 4px;
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(8px);
-  padding: 4px;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+.map-box.fullscreen{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  z-index:9999;
+  border-radius:0;
 }
 
-.map-controls button {
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  padding: 5px 7px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: #1e3a8a;
-  transition: all 0.2s ease;
-  width: auto; height: auto; margin-top: 0;
+.pin{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-100%);
+  font-size:28px;
+  z-index:1000;
+  color:#2563eb;
 }
 
-.map-controls button:hover { background: #e5e7eb; }
-
-.gps-btn {
-  position: absolute;
-  bottom: 8px; right: 8px;
-  z-index: 1001;
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.95);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  margin-top: 0;
+.map-controls{
+  position:absolute;
+  top:8px;
+  right:8px;
+  z-index:1001;
+  display:flex;
+  gap:4px;
+  background:rgba(255,255,255,0.92);
+  padding:4px;
+  border-radius:10px;
 }
 
-.gps-btn i { font-size: 16px; color: #2563eb; }
-
-.fullscreen-btn {
-  position: absolute;
-  bottom: 8px; left: 8px;
-  z-index: 1001;
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.95);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  margin-top: 0;
+.map-controls button{
+  border:none;
+  background:transparent;
+  font-size:14px;
+  padding:5px 7px;
+  border-radius:6px;
+  cursor:pointer;
+  color:#1e3a8a;
 }
 
-.fullscreen-btn i { font-size: 16px; color: #2563eb; }
-
-/* ─── FORMULARIO ─────────────────────────────────── */
-.form {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+.gps-btn,
+.fullscreen-btn{
+  position:absolute;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  border:none;
+  background:white;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1001;
+  box-shadow:0 3px 10px rgba(0,0,0,0.25);
 }
 
-h2 { text-align: center; margin-bottom: 6px; color: #1e3a8a; font-size: 17px; }
-
-.form-subtitle {
-  text-align: center;
-  font-size: 12px;
-  color: #64748b;
-  margin-bottom: 18px;
+.gps-btn{
+  bottom:8px;
+  right:8px;
 }
 
-.section-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #1e3a8a;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin: 16px 0 8px;
-  padding-bottom: 4px;
-  border-bottom: 1.5px solid #dbeafe;
+.fullscreen-btn{
+  bottom:8px;
+  left:8px;
 }
 
-.input-group { position: relative; margin-bottom: 10px; }
-
-.input-group i {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #3b82f6;
+/* FORM */
+.form{
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.08);
 }
 
-input, textarea, select {
-  width: 100%;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: #1e3a8a;
-  color: white;
-  font-size: 15px;
-  font-family: 'Segoe UI', sans-serif;
+h2{
+  text-align:center;
+  margin-bottom:6px;
+  color:#1e3a8a;
+  font-size:17px;
 }
 
-input {
-  height: 46px;
-  padding-left: 40px;
+.form-subtitle{
+  text-align:center;
+  font-size:12px;
+  color:#64748b;
+  margin-bottom:18px;
 }
 
-select {
-  height: 46px;
-  padding-left: 40px;
-  appearance: none;
-  cursor: pointer;
+.section-title{
+  font-size:12px;
+  font-weight:700;
+  color:#1e3a8a;
+  text-transform:uppercase;
+  margin:16px 0 8px;
+  padding-bottom:4px;
+  border-bottom:1.5px solid #dbeafe;
 }
 
-textarea {
-  padding: 10px 10px 10px 40px;
-  height: 80px;
-  resize: none;
+.input-group{
+  position:relative;
+  margin-bottom:10px;
 }
 
-input::placeholder, textarea::placeholder { color: #93c5fd; }
-select option { background: #1e3a8a; color: white; }
-
-/* ─── CHIPS ──────────────────────────────────────── */
-.chips-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px 0;
+.input-group i{
+  position:absolute;
+  left:12px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#3b82f6;
 }
 
-.chip input { display: none; }
-
-.chip span {
-  display: inline-block;
-  padding: 7px 13px;
-  border-radius: 20px;
-  background: #f1f5f9;
-  color: #1e3a8a;
-  cursor: pointer;
-  font-size: 13px;
-  border: 1px solid #cbd5e1;
-  transition: all 0.2s;
+input,
+textarea,
+select{
+  width:100%;
+  border-radius:8px;
+  border:1px solid #cbd5e1;
+  background:#1e3a8a;
+  color:white;
+  font-size:15px;
+  font-family:'Segoe UI',sans-serif;
 }
 
-.chip input:checked + span {
-  background: #2563eb;
-  color: white;
-  border-color: #2563eb;
+input,
+select{
+  height:46px;
+  padding-left:40px;
 }
 
-.section-label {
-  font-size: 13px;
-  color: #1e3a8a;
-  font-weight: 600;
-  margin-bottom: 6px;
+textarea{
+  padding:10px 10px 10px 40px;
+  height:80px;
+  resize:none;
 }
 
-.char-counter {
-  text-align: right;
-  font-size: 12px;
-  color: #94a3b8;
-  margin-top: 2px;
-  margin-bottom: 4px;
+input::placeholder,
+textarea::placeholder{
+  color:#93c5fd;
 }
 
-/* ─── BOTÓN ENVIAR ───────────────────────────────── */
-button#btnEnviar {
-  width: 100%;
-  height: 50px;
-  margin-top: 14px;
-  border-radius: 10px;
-  border: none;
-  background: #2563eb;
-  color: white;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: background 0.2s;
+.chips-container{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
 }
 
-button#btnEnviar:hover { background: #1d4ed8; }
-button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
-
-.loader {
-  display: none;
-  text-align: center;
-  margin-top: 10px;
-  font-weight: 600;
-  color: #2563eb;
-  font-size: 14px;
+.chip input{
+  display:none;
 }
 
-.required-mark { color: #ef4444; margin-left: 2px; }
-
-/* ── BOTÓN INSTALAR PWA ── */
-#btn-instalar {
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  background: #1e3a8a;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 20px rgba(30,58,138,0.5);
-  font-family: 'Segoe UI', sans-serif;
-  animation: slideUp 0.4s ease;
+.chip span{
+  display:inline-block;
+  padding:7px 13px;
+  border-radius:20px;
+  background:#f1f5f9;
+  color:#1e3a8a;
+  cursor:pointer;
+  font-size:13px;
+  border:1px solid #cbd5e1;
 }
 
-@keyframes slideUp {
-  from { transform: translateX(-50%) translateY(80px); opacity: 0; }
-  to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+.chip input:checked + span{
+  background:#2563eb;
+  color:white;
 }
 
-/* ── BANNER OFFLINE ── */
-#banner-offline {
-  display: none;
-  background: #92400e;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  align-items: center;
-  gap: 8px;
+.char-counter{
+  text-align:right;
+  font-size:12px;
+  color:#94a3b8;
 }
 
-/* ── BADGE PENDIENTES ── */
-#badge-pendientes {
-  display: none;
-  background: #1e3a8a;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  text-align: center;
-  cursor: pointer;
+button#btnEnviar{
+  width:100%;
+  height:50px;
+  margin-top:14px;
+  border-radius:10px;
+  border:none;
+  background:#2563eb;
+  color:white;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
 }
 
-/* ── TOAST ── */
-#toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1e3a8a;
-  color: white;
-  padding: 12px 22px;
-  border-radius: 50px;
-  font-size: 13px;
-  font-weight: 600;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.4s;
-  white-space: nowrap;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  pointer-events: none;
+.loader{
+  display:none;
+  text-align:center;
+  margin-top:10px;
+  font-weight:600;
+  color:#2563eb;
+}
+
+#btn-instalar{
+  display:none;
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:9999;
+  background:#1e3a8a;
+  color:white;
+  border:none;
+  border-radius:50px;
+  padding:12px 24px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+#banner-offline{
+  background:#16a34a;
+  color:white;
+  padding:10px;
+  text-align:center;
+  font-weight:bold;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  z-index:99999;
+}
+
+#badge-pendientes{
+  display:none;
+  background:#1e3a8a;
+  color:white;
+  padding:10px 16px;
+  border-radius:10px;
+  margin-bottom:10px;
+  font-size:13px;
+  font-weight:600;
+  text-align:center;
+  cursor:pointer;
+}
+
+#toast{
+  position:fixed;
+  bottom:80px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#1e3a8a;
+  color:white;
+  padding:12px 22px;
+  border-radius:50px;
+  font-size:13px;
+  z-index:9999;
+  opacity:0;
+  transition:opacity 0.4s;
 }
 </style>
 </head>
+
+<body>
+
+<div id="banner-offline">
+🟢 Conectado
+</div>
+
+<div class="wrapper">
+
+<div class="header-box">
+<h1>🤝 Relevamiento de Cooperativas</h1>
+<p>Registro de cooperativas mixtas — Corrientes</p>
+</div>
+
+<div id="badge-pendientes" onclick="reenviarManual()"></div>
+
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div class="login-box">
+
+<div id="usuario" class="usuario">
+No logueado
+</div>
+
+<div id="g_id_onload"
+data-client_id="143500420704-10l3oj33bt1hpdnf2i91hpupk24uh3bh.apps.googleusercontent.com"
+data-callback="handleCredentialResponse">
+</div>
+
+<div class="g_id_signin"></div>
+
+<button id="btnLogout"
+onclick="cerrarSesion()"
+style="display:none;margin-top:8px;">
+Cerrar sesión
+</button>
+
+</div>
+
+<!-- MAPA -->
+<div class="map-title">
+📍 Ubicación de la cooperativa
+</div>
+
+<div class="map-box" id="mapBox">
+
+<div id="map"></div>
+
+<div class="pin">
+<i class="fa-solid fa-location-dot"></i>
+</div>
+
+<div class="map-controls">
+<button onclick="cambiarCapa('mapa')">🗺️</button>
+<button onclick="cambiarCapa('satelite')">🛰️</button>
+<button onclick="cambiarCapa('hibrido')">🌐</button>
+<button onclick="cambiarCapa('google')">🟡</button>
+</div>
+
+<button class="gps-btn" onclick="irMiUbicacion()">
+<i class="fa-solid fa-location-crosshairs"></i>
+</button>
+
+<button class="fullscreen-btn" onclick="toggleFullscreen()">
+<i class="fa-solid fa-expand"></i>
+</button>
+
+</div>
+
+<!-- FORM -->
+<div class="form">
+
+<h2>📋 Datos del Relevamiento</h2>
+
+<p class="form-subtitle">
+Los campos obligatorios deben completarse
+</p>
+
+<div class="section-title">
+Datos de la cooperativa
+</div>
+
+<div class="input-group">
+<i class="fa fa-building"></i>
+<input id="nombre_coop" placeholder="Nombre de la cooperativa *">
+</div>
+
+<div class="input-group">
+<i class="fa fa-hashtag"></i>
+<input id="matricula" placeholder="Matrícula">
+</div>
+
+<div class="input-group">
+<i class="fa fa-id-badge"></i>
+<input id="cuit" type="number" placeholder="CUIT">
+</div>
+
+<div class="input-group">
+<i class="fa fa-map-marker-alt"></i>
+<input id="direccion" placeholder="Dirección">
+</div>
+
+<div class="section-title">
+Tipo de cooperativa
+</div>
+
+<div class="chips-container">
+
+<label class="chip">
+<input type="checkbox" name="tipo" value="Trabajo">
+<span>Trabajo</span>
+</label>
+
+<label class="chip">
+<input type="checkbox" name="tipo" value="Vivienda">
+<span>Vivienda</span>
+</label>
+
+<label class="chip">
+<input type="checkbox" name="tipo" value="Agropecuaria">
+<span>Agropecuaria</span>
+</label>
+
+<label class="chip">
+<input type="checkbox" name="tipo" value="Consumo">
+<span>Consumo</span>
+</label>
+
+<label class="chip">
+<input type="checkbox" name="tipo" value="Servicios">
+<span>Servicios</span>
+</label>
+
+<label class="chip">
+<input type="checkbox" name="tipo" value="Mixta">
+<span>Mixta</span>
+</label>
+
+</div>
+
+<div class="section-title">
+Estado
+</div>
+
+<div class="input-group">
+<i class="fa fa-circle-check"></i>
+
+<select id="estado">
+<option value="">Seleccionar...</option>
+<option value="Activa">Activa</option>
+<option value="Inactiva">Inactiva</option>
+<option value="En formación">En formación</option>
+<option value="Suspendida">Suspendida</option>
+<option value="Disuelta">Disuelta</option>
+</select>
+
+</div>
+
+<div class="section-title">
+Observaciones
+</div>
+
+<div class="input-group">
+<i class="fa fa-comment"></i>
+<textarea id="observaciones" maxlength="200"></textarea>
+</div>
+
+<div class="char-counter" id="contador">
+0 / 200
+</div>
+
+<button id="btnEnviar" onclick="enviar()">
+ENVIAR RELEVAMIENTO
+</button>
+
+<div class="loader" id="loader">
+⏳ Enviando datos...
+</div>
+
+</div>
+
+</div>
+
+<button id="btn-instalar" onclick="instalarPWA()">
+<i class="fa fa-download"></i>
+Instalar app
+</button>
+
 <script>
 const API = "https://api-cooperativas.onrender.com";
 
-// ───────────────── LOGIN ─────────────────
 let usuario = null;
+let map;
+let lat = -27.48;
+let lng = -58.83;
+let capaActual;
+let capas = {};
+let deferredPrompt;
 
-function mostrarUsuario(data) {
+// LOGIN
+function mostrarUsuario(data){
   document.getElementById("usuario").innerText = "👤 " + data.name;
   document.querySelector(".g_id_signin").style.display = "none";
   document.getElementById("btnLogout").style.display = "block";
 }
 
-function cerrarSesion() {
+function cerrarSesion(){
   localStorage.removeItem("usuario_coop");
   usuario = null;
+
   document.getElementById("usuario").innerText = "No logueado";
+
   document.querySelector(".g_id_signin").style.display = "block";
+
   document.getElementById("btnLogout").style.display = "none";
 }
 
-function handleCredentialResponse(response) {
-  const data = JSON.parse(atob(response.credential.split('.')[1]));
+function handleCredentialResponse(response){
+
+  const data = JSON.parse(
+    atob(response.credential.split('.')[1])
+  );
 
   usuario = data;
 
-  localStorage.setItem("usuario_coop", JSON.stringify(data));
+  localStorage.setItem(
+    "usuario_coop",
+    JSON.stringify(data)
+  );
 
   mostrarUsuario(data);
-
-  fetch(API + "/registrar-operador", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      nombre: data.name,
-      email: data.email
-    })
-  });
 }
 
-// ───────────────── MAPA ─────────────────
-let map, lat = -27.48, lng = -58.83;
-let capaActual;
-let capas = {};
+// MAPA
+function iniciarMapa(){
 
-function iniciarMapa() {
-
-  map = L.map('map').setView([lat, lng], 14);
+  map = L.map('map').setView([lat,lng],14);
 
   const mapa = L.tileLayer(
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
@@ -451,30 +611,24 @@ function iniciarMapa() {
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
   );
 
-  const etiquetas = L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png'
-  );
-
-  const lugares = L.tileLayer(
-    'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-    { opacity: 0.3 }
-  );
-
-  const hibrido = L.layerGroup([
-    satelite,
-    lugares,
-    etiquetas
-  ]);
-
   const google = L.tileLayer(
     'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
   );
 
+  const etiquetas = L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png'
+  );
+
+  const hibrido = L.layerGroup([
+    satelite,
+    etiquetas
+  ]);
+
   capas = {
     mapa,
     satelite,
-    hibrido,
-    google
+    google,
+    hibrido
   };
 
   capaActual = google;
@@ -483,7 +637,7 @@ function iniciarMapa() {
 
   map.on("move", () => {
 
-    let c = map.getCenter();
+    const c = map.getCenter();
 
     lat = c.lat;
     lng = c.lng;
@@ -492,9 +646,9 @@ function iniciarMapa() {
   irMiUbicacion();
 }
 
-function cambiarCapa(tipo) {
+function cambiarCapa(tipo){
 
-  if (capaActual) {
+  if(capaActual){
     map.removeLayer(capaActual);
   }
 
@@ -503,18 +657,19 @@ function cambiarCapa(tipo) {
   capaActual.addTo(map);
 }
 
-function irMiUbicacion() {
+function irMiUbicacion(){
 
   navigator.geolocation.getCurrentPosition(pos => {
 
     lat = pos.coords.latitude;
     lng = pos.coords.longitude;
 
-    map.setView([lat, lng], 16);
+    map.setView([lat,lng],16);
+
   });
 }
 
-function toggleFullscreen() {
+function toggleFullscreen(){
 
   document
     .getElementById("mapBox")
@@ -523,217 +678,28 @@ function toggleFullscreen() {
 
   setTimeout(() => {
     map.invalidateSize();
-  }, 300);
+  },300);
 }
 
-// ───────────────── INIT ─────────────────
-document.addEventListener("DOMContentLoaded", () => {
+// OFFLINE
+function actualizarEstadoConexion(){
 
-  const guardado = localStorage.getItem("usuario_coop");
+  const banner =
+    document.getElementById("banner-offline");
 
-  if (guardado) {
-
-    usuario = JSON.parse(guardado);
-
-    mostrarUsuario(usuario);
-  }
-
-  document
-    .getElementById("observaciones")
-    .addEventListener("input", function () {
-
-      document.getElementById("contador").innerText =
-        this.value.length + " / 200";
-    });
-});
-
-window.onload = async () => {
-
-  iniciarMapa();
-
-  actualizarEstadoConexion();
-
-  actualizarBadgePendientes();
-
-  await sincronizarPendientes();
-};
-
-// ───────────────── INDEXEDDB ─────────────────
-function abrirDB() {
-
-  return new Promise((resolve, reject) => {
-
-    const request = indexedDB.open("cooperativasDB", 1);
-
-    request.onupgradeneeded = e => {
-
-      const db = e.target.result;
-
-      if (!db.objectStoreNames.contains("pendientes")) {
-
-        db.createObjectStore("pendientes", {
-          keyPath: "id",
-          autoIncrement: true
-        });
-      }
-    };
-
-    request.onsuccess = () => resolve(request.result);
-
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function guardarOffline(datos) {
-
-  const db = await abrirDB();
-
-  await new Promise((resolve, reject) => {
-
-    const tx = db.transaction("pendientes", "readwrite");
-
-    tx.objectStore("pendientes").add({
-      url: API + "/guardar-cooperativa",
-      data: datos,
-      fecha: new Date().toISOString()
-    });
-
-    tx.oncomplete = resolve;
-
-    tx.onerror = e => reject(e.target.error);
-  });
-
-  actualizarBadgePendientes();
-
-  if ('serviceWorker' in navigator && 'SyncManager' in window) {
-
-    const reg = await navigator.serviceWorker.ready;
-
-    await reg.sync.register('sync-cooperativas');
-  }
-}
-
-async function contarPendientes() {
-
-  const db = await abrirDB();
-
-  return new Promise(resolve => {
-
-    const req = db
-      .transaction("pendientes", "readonly")
-      .objectStore("pendientes")
-      .count();
-
-    req.onsuccess = e => resolve(e.target.result);
-
-    req.onerror = () => resolve(0);
-  });
-}
-
-async function sincronizarPendientes() {
-
-  if (!navigator.onLine) return;
-
-  const db = await abrirDB();
-
-  const pendientes = await new Promise((resolve, reject) => {
-
-    const req = db
-      .transaction("pendientes", "readonly")
-      .objectStore("pendientes")
-      .getAll();
-
-    req.onsuccess = e => resolve(e.target.result);
-
-    req.onerror = e => reject(e.target.error);
-  });
-
-  for (const item of pendientes) {
-
-    try {
-
-      const fd = new FormData();
-
-      Object.entries(item.data).forEach(([k, v]) => {
-        fd.append(k, v);
-      });
-
-      const res = await fetch(item.url, {
-        method: "POST",
-        body: fd
-      });
-
-      if (res.ok) {
-
-        await new Promise((resolve, reject) => {
-
-          const tx = db.transaction("pendientes", "readwrite");
-
-          tx.objectStore("pendientes").delete(item.id);
-
-          tx.oncomplete = resolve;
-
-          tx.onerror = e => reject(e.target.error);
-        });
-      }
-
-    } catch (e) {
-
-      console.log("Sigue offline");
-    }
-  }
-
-  actualizarBadgePendientes();
-}
-
-async function enviarPendientesDesdeApp() {
-
-  await sincronizarPendientes();
-
-  const restantes = await contarPendientes();
-
-  return restantes;
-}
-
-// ───────────────── UI OFFLINE ─────────────────
-function actualizarEstadoConexion() {
-
-  const banner = document.getElementById("offlineBanner");
-
-  if (!banner) return;
-
-  if (navigator.onLine) {
+  if(navigator.onLine){
 
     banner.innerHTML = "🟢 Conectado";
     banner.style.background = "#16a34a";
 
-  } else {
+  }else{
 
     banner.innerHTML = "🔴 Modo Offline";
     banner.style.background = "#dc2626";
   }
 }
 
-async function actualizarBadgePendientes() {
-
-  const n = await contarPendientes();
-
-  const badge = document.getElementById("badge-pendientes");
-
-  if (n > 0) {
-
-    badge.style.display = "block";
-
-    badge.innerText =
-      `📦 ${n} formulario(s) guardado(s) sin enviar`;
-
-  } else {
-
-    badge.style.display = "none";
-  }
-}
-
-function mostrarToast(msg) {
+function mostrarToast(msg){
 
   const t = document.getElementById("toast");
 
@@ -743,66 +709,38 @@ function mostrarToast(msg) {
 
   setTimeout(() => {
     t.style.opacity = "0";
-  }, 3500);
+  },3000);
 }
 
-async function reenviarManual() {
+// FORM
+async function enviar(){
 
-  if (!navigator.onLine) {
+  if(!usuario){
 
-    mostrarToast("⚠️ Sin conexión");
-
-    return;
-  }
-
-  await sincronizarPendientes();
-
-  mostrarToast("✅ Pendientes sincronizados");
-}
-
-window.addEventListener("online", async () => {
-
-  actualizarEstadoConexion();
-
-  await sincronizarPendientes();
-
-  mostrarToast("🌐 Conexión restaurada");
-});
-
-window.addEventListener("offline", () => {
-
-  actualizarEstadoConexion();
-
-  mostrarToast("📴 Modo offline activado");
-});
-
-// ───────────────── ENVIAR ─────────────────
-async function enviar() {
-
-  if (!usuario) {
-
-    alert("⚠️ Debe iniciar sesión");
+    alert("Debe iniciar sesión");
 
     return;
   }
 
-  const nombre_coop =
-    document.getElementById("nombre_coop").value.trim();
+  const nombre =
+    document.getElementById("nombre_coop")
+    .value
+    .trim();
 
-  if (!nombre_coop) {
+  if(!nombre){
 
-    alert("⚠️ Nombre obligatorio");
+    alert("Nombre obligatorio");
 
     return;
   }
 
-  const boton = document.getElementById("btnEnviar");
+  const boton =
+    document.getElementById("btnEnviar");
 
-  const loader = document.getElementById("loader");
+  const loader =
+    document.getElementById("loader");
 
   boton.disabled = true;
-
-  boton.innerText = "Enviando...";
 
   loader.style.display = "block";
 
@@ -813,153 +751,120 @@ async function enviar() {
     .forEach(c => tipos.push(c.value));
 
   const datos = {
-
-    nombre_coop,
-
-    matricula:
-      document.getElementById("matricula").value,
-
-    cuit:
-      document.getElementById("cuit").value,
-
-    direccion:
-      document.getElementById("direccion").value,
-
-    estado:
-      document.getElementById("estado").value,
-
-    referente_nombre:
-      document.getElementById("referente_nombre").value,
-
-    referente_tel:
-      document.getElementById("referente_tel").value,
-
-    referente_email:
-      document.getElementById("referente_email").value,
-
-    cantidad_asociados:
-      document.getElementById("cantidad_asociados").value,
-
-    rubro:
-      document.getElementById("rubro").value,
-
-    observaciones:
-      document.getElementById("observaciones").value,
-
+    nombre_coop:nombre,
+    matricula:document.getElementById("matricula").value,
+    cuit:document.getElementById("cuit").value,
+    direccion:document.getElementById("direccion").value,
+    estado:document.getElementById("estado").value,
+    observaciones:document.getElementById("observaciones").value,
+    tipo:tipos.join(", "),
     lat,
     lng,
-
-    operador_nombre:
-      usuario.name,
-
-    operador_email:
-      usuario.email,
-
-    tipo:
-      tipos.join(", ")
+    operador_nombre:usuario.name,
+    operador_email:usuario.email
   };
 
-  if (!navigator.onLine) {
+  try{
 
-    await guardarOffline(datos);
+    const fd = new FormData();
 
-    mostrarToast("📦 Guardado offline");
-
-    resetForm();
-
-    boton.disabled = false;
-
-    boton.innerText = "ENVIAR RELEVAMIENTO";
-
-    loader.style.display = "none";
-
-    return;
-  }
-
-  const fd = new FormData();
-
-  Object.entries(datos).forEach(([k, v]) => {
-    fd.append(k, v);
-  });
-
-  try {
+    Object.entries(datos).forEach(([k,v]) => {
+      fd.append(k,v);
+    });
 
     const res = await fetch(
       API + "/guardar-cooperativa",
       {
-        method: "POST",
-        body: fd
+        method:"POST",
+        body:fd
       }
     );
 
-    if (!res.ok) throw new Error();
+    if(!res.ok){
+      throw new Error();
+    }
 
     mostrarToast("✅ Enviado correctamente");
 
     resetForm();
 
-  } catch (e) {
+  }catch(e){
 
-    await guardarOffline(datos);
-
-    mostrarToast("📦 Error de red — guardado offline");
-
-    resetForm();
+    mostrarToast("❌ Error al enviar");
   }
 
   boton.disabled = false;
 
-  boton.innerText = "ENVIAR RELEVAMIENTO";
-
   loader.style.display = "none";
 }
 
-function resetForm() {
+function resetForm(){
 
   [
     "nombre_coop",
     "matricula",
     "cuit",
     "direccion",
-    "referente_nombre",
-    "referente_tel",
-    "referente_email",
-    "cantidad_asociados",
-    "rubro",
     "observaciones"
   ].forEach(id => {
 
     document.getElementById(id).value = "";
-  });
 
-  document.getElementById("estado").value = "";
+  });
 
   document
     .querySelectorAll('input[name="tipo"]')
     .forEach(c => c.checked = false);
 
-  document.getElementById("contador").innerText = "0 / 200";
+  document.getElementById("contador").innerText =
+    "0 / 200";
 }
 
-// ───────────────── PWA ─────────────────
-if ('serviceWorker' in navigator) {
+// INIT
+document.addEventListener("DOMContentLoaded", () => {
+
+  const guardado =
+    localStorage.getItem("usuario_coop");
+
+  if(guardado){
+
+    usuario = JSON.parse(guardado);
+
+    mostrarUsuario(usuario);
+  }
+
+  document
+    .getElementById("observaciones")
+    .addEventListener("input", function(){
+
+      document.getElementById("contador")
+      .innerText =
+      this.value.length + " / 200";
+    });
+
+  iniciarMapa();
+
+  actualizarEstadoConexion();
+});
+
+// PWA
+if('serviceWorker' in navigator){
 
   window.addEventListener('load', async () => {
 
-    try {
+    try{
 
       await navigator.serviceWorker.register('/sw.js');
 
-      console.log('✅ SW registrado');
+      console.log("SW registrado");
 
-    } catch (e) {
+    }catch(e){
 
-      console.error('❌ Error SW', e);
+      console.log(e);
     }
+
   });
 }
-
-let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', e => {
 
@@ -967,12 +872,13 @@ window.addEventListener('beforeinstallprompt', e => {
 
   deferredPrompt = e;
 
-  document.getElementById('btn-instalar').style.display = 'flex';
+  document.getElementById("btn-instalar")
+  .style.display = "block";
 });
 
-function instalarPWA() {
+function instalarPWA(){
 
-  if (!deferredPrompt) return;
+  if(!deferredPrompt) return;
 
   deferredPrompt.prompt();
 
@@ -980,9 +886,13 @@ function instalarPWA() {
 
     deferredPrompt = null;
 
-    document.getElementById('btn-instalar').style.display = 'none';
+    document.getElementById("btn-instalar")
+    .style.display = "none";
   });
 }
+
+window.addEventListener("online", actualizarEstadoConexion);
+window.addEventListener("offline", actualizarEstadoConexion);
 </script>
 
 </body>
