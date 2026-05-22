@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- PWA -->
+<meta name="theme-color" content="#1e3a8a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cooperativas">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -305,6 +315,35 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 }
 
 .required-mark { color: #ef4444; margin-left: 2px; }
+
+/* ── BOTÓN INSTALAR PWA ── */
+#btn-instalar {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: #1e3a8a;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(30,58,138,0.5);
+  font-family: 'Segoe UI', sans-serif;
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateX(-50%) translateY(80px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+
 </style>
 </head>
 
@@ -321,7 +360,7 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
   <div class="login-box">
     <div id="usuario" class="usuario">No logueado</div>
     <div id="g_id_onload"
-         data-client_id="143500420704-10l3oj33bt1hpdnf2i91hpupk24uh3bh.apps.googleusercontent.com"
+         data-client_id="TU_CLIENT_ID_GOOGLE.apps.googleusercontent.com"
          data-callback="handleCredentialResponse">
     </div>
     <div class="g_id_signin"></div>
@@ -581,6 +620,38 @@ function resetForm() {
   document.querySelectorAll('input[name="tipo"]').forEach(c => c.checked = false);
   document.getElementById("contador").innerText = "0 / 200";
 }
+
+// ── SERVICE WORKER ────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('✅ SW registrado:', reg.scope))
+      .catch(err => console.log('❌ SW error:', err));
+  });
+}
+
+// ── BANNER INSTALAR PWA ───────────────────────────
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('btn-instalar').style.display = 'flex';
+});
+
+function instalarPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById('btn-instalar').style.display = 'none';
+  });
+}
 </script>
+
+<!-- BOTÓN INSTALAR PWA -->
+<button id="btn-instalar" onclick="instalarPWA()">
+  <i class="fa fa-download"></i> Instalar app
+</button>
+
 </body>
 </html>
