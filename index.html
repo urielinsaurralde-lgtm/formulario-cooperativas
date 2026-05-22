@@ -13,7 +13,6 @@
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
-
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -286,7 +285,7 @@ select option { background: #1e3a8a; color: white; }
   margin-bottom: 4px;
 }
 
-/* ─── BOTÓN ──────────────────────────────────────── */
+/* ─── BOTÓN ENVIAR ───────────────────────────────── */
 button#btnEnviar {
   width: 100%;
   height: 50px;
@@ -344,7 +343,6 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
   to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
 }
 
-
 /* ── BANNER OFFLINE ── */
 #banner-offline {
   display: none;
@@ -392,7 +390,6 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   pointer-events: none;
 }
-
 </style>
 </head>
 
@@ -404,7 +401,6 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
     <h1>🤝 Relevamiento de Cooperativas</h1>
     <p>Registro de cooperativas mixtas — Corrientes</p>
   </div>
-
 
   <!-- BANNER OFFLINE -->
   <div id="banner-offline">
@@ -425,6 +421,12 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
          data-callback="handleCredentialResponse">
     </div>
     <div class="g_id_signin"></div>
+    <button id="btnLogout" onclick="cerrarSesion()"
+            style="display:none; margin-top:8px; background:transparent; border:1px solid #cbd5e1;
+                   color:#64748b; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer;
+                   font-family:'Segoe UI',sans-serif;">
+      Cerrar sesión
+    </button>
   </div>
 
   <!-- MAPA -->
@@ -548,16 +550,36 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 
 </div>
 
+<!-- BOTÓN INSTALAR PWA -->
+<button id="btn-instalar" onclick="instalarPWA()">
+  <i class="fa fa-download"></i> Instalar app
+</button>
+
 <script>
-const API = "https://api-cooperativas.onrender.com"; // ← Cambiar por tu URL real
+const API = "https://api-cooperativas.onrender.com";
 
 // ─── LOGIN ────────────────────────────────────────
 let usuario = null;
 
+function mostrarUsuario(data) {
+  document.getElementById("usuario").innerText = "👤 " + data.name;
+  document.querySelector(".g_id_signin").style.display = "none";
+  document.getElementById("btnLogout").style.display = "block";
+}
+
+function cerrarSesion() {
+  localStorage.removeItem("usuario_coop");
+  usuario = null;
+  document.getElementById("usuario").innerText = "No logueado";
+  document.querySelector(".g_id_signin").style.display = "block";
+  document.getElementById("btnLogout").style.display = "none";
+}
+
 function handleCredentialResponse(response) {
   const data = JSON.parse(atob(response.credential.split('.')[1]));
   usuario = data;
-  document.getElementById("usuario").innerText = "👤 " + data.name;
+  localStorage.setItem("usuario_coop", JSON.stringify(data));
+  mostrarUsuario(data);
 
   fetch(API + "/registrar-operador", {
     method: "POST",
@@ -606,15 +628,28 @@ function toggleFullscreen() {
   setTimeout(() => map.invalidateSize(), 300);
 }
 
-// ─── CONTADOR ─────────────────────────────────────
+// ─── INIT ─────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  // Recuperar sesión guardada
+  const guardado = localStorage.getItem("usuario_coop");
+  if (guardado) {
+    usuario = JSON.parse(guardado);
+    mostrarUsuario(usuario);
+  }
+
+  // Contador observaciones
   document.getElementById("observaciones").addEventListener("input", function () {
     document.getElementById("contador").innerText = this.value.length + " / 200";
   });
 });
 
-window.onload = () => { iniciarMapa(); actualizarBannerOffline(); actualizarBadgePendientes(); };
+window.onload = () => {
+  iniciarMapa();
+  actualizarBannerOffline();
+  actualizarBadgePendientes();
+};
 
+// ─── OFFLINE / PENDIENTES ─────────────────────────
 async function reenviarManual() {
   if (!navigator.onLine) {
     mostrarToast("⚠️ Todavía sin conexión. Intentá más tarde.");
@@ -627,9 +662,7 @@ async function reenviarManual() {
   actualizarBadgePendientes();
 }
 
-
-// ─── ENVIAR ───────────────────────────────────────
-// ── IndexedDB: guardar offline ───────────────────────
+// ── IndexedDB ────────────────────────────────────
 function abrirDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open("coopOfflineDB", 1);
@@ -687,7 +720,7 @@ async function enviarPendientesDesdeApp() {
   return { enviados, total: todos.length };
 }
 
-// ── Reenviar cuando vuelve la red ────────────────────
+// ── Red ───────────────────────────────────────────
 window.addEventListener("online", async () => {
   actualizarBannerOffline();
   const n = await contarPendientes();
@@ -702,11 +735,7 @@ window.addEventListener("offline", () => actualizarBannerOffline());
 
 function actualizarBannerOffline() {
   const banner = document.getElementById("banner-offline");
-  if (!navigator.onLine) {
-    banner.style.display = "flex";
-  } else {
-    banner.style.display = "none";
-  }
+  banner.style.display = !navigator.onLine ? "flex" : "none";
 }
 
 async function actualizarBadgePendientes() {
@@ -727,7 +756,7 @@ function mostrarToast(msg) {
   setTimeout(() => t.style.opacity = "0", 3500);
 }
 
-// ── ENVIAR ────────────────────────────────────────────
+// ── ENVIAR ────────────────────────────────────────
 async function enviar() {
   if (!usuario) {
     alert("⚠️ Debe iniciar sesión con Google para enviar el formulario.");
@@ -750,7 +779,7 @@ async function enviar() {
   document.querySelectorAll('input[name="tipo"]:checked').forEach(c => tipos.push(c.value));
 
   const datos = {
-    nombre_coop:        nombre_coop,
+    nombre_coop,
     matricula:          document.getElementById("matricula").value,
     cuit:               document.getElementById("cuit").value,
     direccion:          document.getElementById("direccion").value,
@@ -761,14 +790,14 @@ async function enviar() {
     cantidad_asociados: document.getElementById("cantidad_asociados").value,
     rubro:              document.getElementById("rubro").value,
     observaciones:      document.getElementById("observaciones").value,
-    lat:                lat,
-    lng:                lng,
+    lat,
+    lng,
     operador_nombre:    usuario.name,
     operador_email:     usuario.email,
     tipo:               tipos.join(", ")
   };
 
-  // ── Sin conexión: guardar localmente ─────────────────
+  // Sin conexión: guardar localmente
   if (!navigator.onLine) {
     await guardarOffline(datos);
     mostrarToast("📦 Sin conexión — guardado localmente. Se enviará cuando vuelva la red.");
@@ -780,7 +809,7 @@ async function enviar() {
     return;
   }
 
-  // ── Con conexión: enviar directo ─────────────────────
+  // Con conexión: enviar directo
   const formData = new FormData();
   Object.entries(datos).forEach(([k, v]) => formData.append(k, v));
 
@@ -790,7 +819,6 @@ async function enviar() {
     mostrarToast("✅ Cooperativa registrada correctamente.");
     resetForm();
   } catch (e) {
-    // Falló aunque había red: guardar offline igual
     await guardarOffline(datos);
     mostrarToast("📦 Error de red — guardado localmente. Se enviará cuando vuelva la red.");
     resetForm();
@@ -820,7 +848,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ── BANNER INSTALAR PWA ───────────────────────────
+// ── INSTALAR PWA ──────────────────────────────────
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
@@ -837,11 +865,6 @@ function instalarPWA() {
   });
 }
 </script>
-
-<!-- BOTÓN INSTALAR PWA -->
-<button id="btn-instalar" onclick="instalarPWA()">
-  <i class="fa fa-download"></i> Instalar app
-</button>
 
 </body>
 </html>
