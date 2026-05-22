@@ -394,206 +394,9 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 </style>
 </head>
 <script>
-
-if ('serviceWorker' in navigator) {
-
-  window.addEventListener('load', async () => {
-
-    try {
-
-      const reg = await navigator.serviceWorker.register('/sw.js');
-
-      console.log('✅ SW registrado');
-
-    } catch (e) {
-
-      console.error('❌ Error SW', e);
-    }
-  });
-}
-
-</script>
-<body>
-  <div id="offlineBanner"
-style="
-position:fixed;
-top:0;
-left:0;
-width:100%;
-padding:10px;
-text-align:center;
-font-weight:bold;
-color:white;
-z-index:99999;
-background:#16a34a;
-">
-🟢 Conectado
-</div>
-<div class="wrapper">
-
-  <!-- HEADER -->
-  <div class="header-box">
-    <h1>🤝 Relevamiento de Cooperativas</h1>
-    <p>Registro de cooperativas mixtas — Corrientes</p>
-  </div>
-
-  <!-- BANNER OFFLINE -->
-  <div id="banner-offline">
-    ⚡ Sin conexión — los formularios se guardarán localmente
-  </div>
-
-  <!-- BADGE PENDIENTES -->
-  <div id="badge-pendientes" onclick="reenviarManual()"></div>
-
-  <!-- TOAST -->
-  <div id="toast"></div>
-
-  <!-- LOGIN -->
-  <div class="login-box">
-    <div id="usuario" class="usuario">No logueado</div>
-    <div id="g_id_onload"
-         data-client_id="143500420704-10l3oj33bt1hpdnf2i91hpupk24uh3bh.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse">
-    </div>
-    <div class="g_id_signin"></div>
-    <button id="btnLogout" onclick="cerrarSesion()"
-            style="display:none; margin-top:8px; background:transparent; border:1px solid #cbd5e1;
-                   color:#64748b; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer;
-                   font-family:'Segoe UI',sans-serif;">
-      Cerrar sesión
-    </button>
-  </div>
-
-  <!-- MAPA -->
-  <div class="map-title">📍 Ubicación de la cooperativa</div>
-  <div class="map-box" id="mapBox">
-    <div id="map"></div>
-    <div class="pin"><i class="fa-solid fa-location-dot"></i></div>
-
-    <div class="map-controls">
-      <button onclick="cambiarCapa('mapa')" title="Mapa">🗺️</button>
-      <button onclick="cambiarCapa('satelite')" title="Satélite">🛰️</button>
-      <button onclick="cambiarCapa('hibrido')" title="Híbrido">🌐</button>
-      <button onclick="cambiarCapa('google')" title="Google">🟡</button>
-    </div>
-
-    <button class="gps-btn" onclick="irMiUbicacion()" title="Mi ubicación">
-      <i class="fa-solid fa-location-crosshairs"></i>
-    </button>
-
-    <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla completa">
-      <i class="fa-solid fa-expand"></i>
-    </button>
-  </div>
-
-  <!-- FORMULARIO -->
-  <div class="form">
-    <h2>📋 Datos del Relevamiento</h2>
-    <p class="form-subtitle">Los campos marcados con <span class="required-mark">*</span> son obligatorios</p>
-
-    <!-- DATOS DE LA COOPERATIVA -->
-    <div class="section-title">Datos de la cooperativa</div>
-
-    <div class="input-group">
-      <i class="fa fa-building"></i>
-      <input id="nombre_coop" placeholder="Nombre de la cooperativa *">
-    </div>
-
-    <div class="input-group">
-      <i class="fa fa-hashtag"></i>
-      <input id="matricula" placeholder="Matrícula">
-    </div>
-
-    <div class="input-group">
-      <i class="fa fa-id-badge"></i>
-      <input id="cuit" type="number" placeholder="CUIT">
-    </div>
-
-    <div class="input-group">
-      <i class="fa fa-map-marker-alt"></i>
-      <input id="direccion" placeholder="Dirección">
-    </div>
-
-    <!-- TIPO -->
-    <div class="section-title">Tipo de cooperativa</div>
-    <div class="chips-container" id="chips-tipo">
-      <label class="chip"><input type="checkbox" name="tipo" value="Trabajo"><span>Trabajo</span></label>
-      <label class="chip"><input type="checkbox" name="tipo" value="Vivienda"><span>Vivienda</span></label>
-      <label class="chip"><input type="checkbox" name="tipo" value="Agropecuaria"><span>Agropecuaria</span></label>
-      <label class="chip"><input type="checkbox" name="tipo" value="Consumo"><span>Consumo</span></label>
-      <label class="chip"><input type="checkbox" name="tipo" value="Servicios"><span>Servicios</span></label>
-      <label class="chip"><input type="checkbox" name="tipo" value="Mixta"><span>Mixta</span></label>
-      <label class="chip"><input type="checkbox" name="tipo" value="Otra"><span>Otra</span></label>
-    </div>
-
-    <!-- ESTADO -->
-    <div class="section-title">Estado</div>
-    <div class="input-group">
-      <i class="fa fa-circle-check"></i>
-      <select id="estado">
-        <option value="" disabled selected>Seleccionar estado...</option>
-        <option value="Activa">Activa</option>
-        <option value="Inactiva">Inactiva</option>
-        <option value="En formación">En formación</option>
-        <option value="Suspendida">Suspendida</option>
-        <option value="Disuelta">Disuelta</option>
-      </select>
-    </div>
-
-    <!-- DATOS DEL REFERENTE -->
-    <div class="section-title">Referente / Presidente</div>
-
-    <div class="input-group">
-      <i class="fa fa-user"></i>
-      <input id="referente_nombre" placeholder="Nombre y apellido del referente">
-    </div>
-
-    <div class="input-group">
-      <i class="fa fa-phone"></i>
-      <input id="referente_tel" type="tel" placeholder="Teléfono de contacto">
-    </div>
-
-    <div class="input-group">
-      <i class="fa fa-envelope"></i>
-      <input id="referente_email" type="email" placeholder="Email de contacto">
-    </div>
-
-    <!-- ASOCIADOS Y ACTIVIDAD -->
-    <div class="section-title">Actividad y asociados</div>
-
-    <div class="input-group">
-      <i class="fa fa-users"></i>
-      <input id="cantidad_asociados" type="number" placeholder="Cantidad de asociados">
-    </div>
-
-    <div class="input-group">
-      <i class="fa fa-briefcase"></i>
-      <input id="rubro" placeholder="Rubro / actividad principal">
-    </div>
-
-    <!-- OBSERVACIONES -->
-    <div class="section-title">Observaciones</div>
-    <div class="input-group">
-      <i class="fa fa-comment" style="top:18px;transform:none;"></i>
-      <textarea id="observaciones" maxlength="200" placeholder="Observaciones adicionales..."></textarea>
-    </div>
-    <div class="char-counter" id="contador">0 / 200</div>
-
-    <button id="btnEnviar" onclick="enviar()">ENVIAR RELEVAMIENTO</button>
-    <div class="loader" id="loader">⏳ Enviando datos...</div>
-  </div>
-
-</div>
-
-<!-- BOTÓN INSTALAR PWA -->
-<button id="btn-instalar" onclick="instalarPWA()">
-  <i class="fa fa-download"></i> Instalar app
-</button>
-
-<script>
 const API = "https://api-cooperativas.onrender.com";
 
-// ─── LOGIN ────────────────────────────────────────
+// ───────────────── LOGIN ─────────────────
 let usuario = null;
 
 function mostrarUsuario(data) {
@@ -612,97 +415,155 @@ function cerrarSesion() {
 
 function handleCredentialResponse(response) {
   const data = JSON.parse(atob(response.credential.split('.')[1]));
+
   usuario = data;
+
   localStorage.setItem("usuario_coop", JSON.stringify(data));
+
   mostrarUsuario(data);
 
   fetch(API + "/registrar-operador", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nombre: data.name, email: data.email })
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      nombre: data.name,
+      email: data.email
+    })
   });
 }
 
-// ─── MAPA ─────────────────────────────────────────
-let map, lat = -27.48, lng = -58.83, capaActual, capas = {};
+// ───────────────── MAPA ─────────────────
+let map, lat = -27.48, lng = -58.83;
+let capaActual;
+let capas = {};
 
 function iniciarMapa() {
+
   map = L.map('map').setView([lat, lng], 14);
 
-  const mapa      = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-  const satelite  = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-  const etiquetas = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png');
-  const lugares   = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', { opacity: 0.3 });
-  const hibrido   = L.layerGroup([satelite, lugares, etiquetas]);
-  const google    = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}');
+  const mapa = L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  );
 
-  capas = { mapa, satelite, hibrido, google };
+  const satelite = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+  );
+
+  const etiquetas = L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png'
+  );
+
+  const lugares = L.tileLayer(
+    'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+    { opacity: 0.3 }
+  );
+
+  const hibrido = L.layerGroup([
+    satelite,
+    lugares,
+    etiquetas
+  ]);
+
+  const google = L.tileLayer(
+    'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
+  );
+
+  capas = {
+    mapa,
+    satelite,
+    hibrido,
+    google
+  };
+
   capaActual = google;
+
   capaActual.addTo(map);
 
-  map.on("move", () => { let c = map.getCenter(); lat = c.lat; lng = c.lng; });
+  map.on("move", () => {
+
+    let c = map.getCenter();
+
+    lat = c.lat;
+    lng = c.lng;
+  });
+
   irMiUbicacion();
 }
 
 function cambiarCapa(tipo) {
-  if (capaActual) map.removeLayer(capaActual);
+
+  if (capaActual) {
+    map.removeLayer(capaActual);
+  }
+
   capaActual = capas[tipo];
+
   capaActual.addTo(map);
 }
 
 function irMiUbicacion() {
-  navigator.geolocation.getCurrentPosition(p => {
-    lat = p.coords.latitude;
-    lng = p.coords.longitude;
+
+  navigator.geolocation.getCurrentPosition(pos => {
+
+    lat = pos.coords.latitude;
+    lng = pos.coords.longitude;
+
     map.setView([lat, lng], 16);
   });
 }
 
 function toggleFullscreen() {
-  document.getElementById("mapBox").classList.toggle("fullscreen");
-  setTimeout(() => map.invalidateSize(), 300);
+
+  document
+    .getElementById("mapBox")
+    .classList
+    .toggle("fullscreen");
+
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 300);
 }
 
-// ─── INIT ─────────────────────────────────────────
+// ───────────────── INIT ─────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  // Recuperar sesión guardada
+
   const guardado = localStorage.getItem("usuario_coop");
+
   if (guardado) {
+
     usuario = JSON.parse(guardado);
+
     mostrarUsuario(usuario);
   }
 
-  // Contador observaciones
-  document.getElementById("observaciones").addEventListener("input", function () {
-    document.getElementById("contador").innerText = this.value.length + " / 200";
-  });
+  document
+    .getElementById("observaciones")
+    .addEventListener("input", function () {
+
+      document.getElementById("contador").innerText =
+        this.value.length + " / 200";
+    });
 });
 
-window.onload = () => {
+window.onload = async () => {
+
   iniciarMapa();
-  actualizarBannerOffline();
+
+  actualizarEstadoConexion();
+
   actualizarBadgePendientes();
+
+  await sincronizarPendientes();
 };
 
-// ─── OFFLINE / PENDIENTES ─────────────────────────
-async function reenviarManual() {
-  if (!navigator.onLine) {
-    mostrarToast("⚠️ Todavía sin conexión. Intentá más tarde.");
-    return;
-  }
-  const { enviados, total } = await enviarPendientesDesdeApp();
-  mostrarToast(enviados > 0
-    ? "✅ " + enviados + " de " + total + " formulario(s) enviado(s)"
-    : "ℹ️ No se pudo enviar aún. Intentá más tarde.");
-  actualizarBadgePendientes();
-}
-
-// ── IndexedDB ────────────────────────────────────
+// ───────────────── INDEXEDDB ─────────────────
 function abrirDB() {
+
   return new Promise((resolve, reject) => {
 
     const request = indexedDB.open("cooperativasDB", 1);
-
 
     request.onupgradeneeded = e => {
 
@@ -742,9 +603,8 @@ async function guardarOffline(datos) {
     tx.onerror = e => reject(e.target.error);
   });
 
-  actualizarPendientes();
+  actualizarBadgePendientes();
 
-  // Background Sync
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
 
     const reg = await navigator.serviceWorker.ready;
@@ -752,82 +612,91 @@ async function guardarOffline(datos) {
     await reg.sync.register('sync-cooperativas');
   }
 }
+
 async function contarPendientes() {
+
   const db = await abrirDB();
+
   return new Promise(resolve => {
-    const req = db.transaction("pendientes", "readonly").objectStore("pendientes").count();
+
+    const req = db
+      .transaction("pendientes", "readonly")
+      .objectStore("pendientes")
+      .count();
+
     req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = () => resolve(0);
+
+    req.onerror = () => resolve(0);
   });
 }
-  async function sincronizarPendientes() {
+
+async function sincronizarPendientes() {
 
   if (!navigator.onLine) return;
 
   const db = await abrirDB();
 
-  const tx = db.transaction("pendientes", "readwrite");
+  const pendientes = await new Promise((resolve, reject) => {
 
-  const store = tx.objectStore("pendientes");
+    const req = db
+      .transaction("pendientes", "readonly")
+      .objectStore("pendientes")
+      .getAll();
 
-  const request = store.getAll();
-
-  request.onsuccess = async () => {
-
-    for (const item of request.result) {
-
-      try {
-
-        const formData = new FormData();
-
-        Object.keys(item.data).forEach(key => {
-          formData.append(key, item.data[key]);
-        });
-
-        await fetch(item.url, {
-          method: "POST",
-          body: formData
-        });
-
-        store.delete(item.id);
-
-      } catch (e) {
-
-        console.log("Sigue offline");
-      }
-    }
-
-async function enviarPendientesDesdeApp() {
-  const db = await abrirDB();
-  const todos = await new Promise((resolve, reject) => {
-    const req = db.transaction("pendientes", "readonly").objectStore("pendientes").getAll();
     req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
+
+    req.onerror = e => reject(e.target.error);
   });
 
-  let enviados = 0;
-  for (const item of todos) {
+  for (const item of pendientes) {
+
     try {
+
       const fd = new FormData();
-      Object.entries(item.data).forEach(([k, v]) => fd.append(k, v));
-      const res = await fetch(item.url, { method: "POST", body: fd });
+
+      Object.entries(item.data).forEach(([k, v]) => {
+        fd.append(k, v);
+      });
+
+      const res = await fetch(item.url, {
+        method: "POST",
+        body: fd
+      });
+
       if (res.ok) {
+
         await new Promise((resolve, reject) => {
+
           const tx = db.transaction("pendientes", "readwrite");
+
           tx.objectStore("pendientes").delete(item.id);
+
           tx.oncomplete = resolve;
-          tx.onerror    = e => reject(e.target.error);
+
+          tx.onerror = e => reject(e.target.error);
         });
-        enviados++;
       }
-    } catch (e) { /* sigue con el siguiente */ }
+
+    } catch (e) {
+
+      console.log("Sigue offline");
+    }
   }
-  return { enviados, total: todos.length };
+
+  actualizarBadgePendientes();
 }
 
-// ── Red ───────────────────────────────────────────
-window.addEventListener("online", async () => {
- function actualizarBannerOffline() {
+async function enviarPendientesDesdeApp() {
+
+  await sincronizarPendientes();
+
+  const restantes = await contarPendientes();
+
+  return restantes;
+}
+
+// ───────────────── UI OFFLINE ─────────────────
+function actualizarEstadoConexion() {
 
   const banner = document.getElementById("offlineBanner");
 
@@ -846,155 +715,274 @@ window.addEventListener("online", async () => {
 }
 
 async function actualizarBadgePendientes() {
+
   const n = await contarPendientes();
+
   const badge = document.getElementById("badge-pendientes");
+
   if (n > 0) {
-    badge.textContent = `📦 ${n} formulario(s) guardado(s) sin enviar`;
+
     badge.style.display = "block";
+
+    badge.innerText =
+      `📦 ${n} formulario(s) guardado(s) sin enviar`;
+
   } else {
+
     badge.style.display = "none";
   }
 }
 
 function mostrarToast(msg) {
+
   const t = document.getElementById("toast");
+
   t.textContent = msg;
+
   t.style.opacity = "1";
-  setTimeout(() => t.style.opacity = "0", 3500);
+
+  setTimeout(() => {
+    t.style.opacity = "0";
+  }, 3500);
 }
-  function actualizarPendientes() {
-  actualizarBadgePendientes();
-}
 
-// ── ENVIAR ────────────────────────────────────────
-async function enviar() {
-  if (!usuario) {
-    alert("⚠️ Debe iniciar sesión con Google para enviar el formulario.");
-    return;
-  }
+async function reenviarManual() {
 
-  const nombre_coop = document.getElementById("nombre_coop").value.trim();
-  if (!nombre_coop) {
-    alert("⚠️ El nombre de la cooperativa es obligatorio.");
-    return;
-  }
-
-  const boton  = document.getElementById("btnEnviar");
-  const loader = document.getElementById("loader");
-  boton.disabled = true;
-  boton.innerText = "Enviando...";
-  loader.style.display = "block";
-
-  let tipos = [];
-  document.querySelectorAll('input[name="tipo"]:checked').forEach(c => tipos.push(c.value));
-
-  const datos = {
-    nombre_coop,
-    matricula:          document.getElementById("matricula").value,
-    cuit:               document.getElementById("cuit").value,
-    direccion:          document.getElementById("direccion").value,
-    estado:             document.getElementById("estado").value,
-    referente_nombre:   document.getElementById("referente_nombre").value,
-    referente_tel:      document.getElementById("referente_tel").value,
-    referente_email:    document.getElementById("referente_email").value,
-    cantidad_asociados: document.getElementById("cantidad_asociados").value,
-    rubro:              document.getElementById("rubro").value,
-    observaciones:      document.getElementById("observaciones").value,
-    lat,
-    lng,
-    operador_nombre:    usuario.name,
-    operador_email:     usuario.email,
-    tipo:               tipos.join(", ")
-  };
-
-  // Sin conexión: guardar localmente
   if (!navigator.onLine) {
-    await guardarOffline(datos);
-    mostrarToast("📦 Sin conexión — guardado localmente. Se enviará cuando vuelva la red.");
-    resetForm();
-    actualizarBadgePendientes();
-    boton.disabled = false;
-    boton.innerText = "ENVIAR RELEVAMIENTO";
-    loader.style.display = "none";
+
+    mostrarToast("⚠️ Sin conexión");
+
     return;
   }
 
-  // Con conexión: enviar directo
-  const formData = new FormData();
-  Object.entries(datos).forEach(([k, v]) => formData.append(k, v));
+  await sincronizarPendientes();
 
-  try {
-    const res = await fetch(API + "/guardar-cooperativa", { method: "POST", body: formData });
-    if (!res.ok) throw new Error("Error servidor");
-    mostrarToast("✅ Cooperativa registrada correctamente.");
-    resetForm();
-  } catch (e) {
-    await guardarOffline(datos);
-    mostrarToast("📦 Error de red — guardado localmente. Se enviará cuando vuelva la red.");
-    resetForm();
-    actualizarBadgePendientes();
-  } finally {
-    boton.disabled = false;
-    boton.innerText = "ENVIAR RELEVAMIENTO";
-    loader.style.display = "none";
-  }
+  mostrarToast("✅ Pendientes sincronizados");
 }
 
-function resetForm() {
-  ["nombre_coop","matricula","cuit","direccion","referente_nombre",
-   "referente_tel","referente_email","cantidad_asociados","rubro","observaciones"]
-    .forEach(id => document.getElementById(id).value = "");
-  document.getElementById("estado").value = "";
-  document.querySelectorAll('input[name="tipo"]').forEach(c => c.checked = false);
-  document.getElementById("contador").innerText = "0 / 200";
-}
-
-// ── INSTALAR PWA ──────────────────────────────────
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('btn-instalar').style.display = 'flex';
-});
-
-function instalarPWA() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(() => {
-    deferredPrompt = null;
-    document.getElementById('btn-instalar').style.display = 'none';
-  });
-}
-  function actualizarEstadoConexion() {
-
-  const estado = navigator.onLine;
-
-  const banner = document.getElementById("offlineBanner");
-
-  if (!banner) return;
-
-  if (estado) {
-
-    banner.innerHTML = "🟢 Conectado";
-    banner.style.background = "#16a34a";
-
-  } else {
-
-    banner.innerHTML = "🔴 Modo Offline";
-    banner.style.background = "#dc2626";
-  }
-}
-
-window.addEventListener("load", () => {
+window.addEventListener("online", async () => {
 
   actualizarEstadoConexion();
 
   await sincronizarPendientes();
+
+  mostrarToast("🌐 Conexión restaurada");
 });
 
-window.addEventListener("offline", actualizarEstadoConexion);
+window.addEventListener("offline", () => {
 
-actualizarEstadoConexion();
+  actualizarEstadoConexion();
+
+  mostrarToast("📴 Modo offline activado");
+});
+
+// ───────────────── ENVIAR ─────────────────
+async function enviar() {
+
+  if (!usuario) {
+
+    alert("⚠️ Debe iniciar sesión");
+
+    return;
+  }
+
+  const nombre_coop =
+    document.getElementById("nombre_coop").value.trim();
+
+  if (!nombre_coop) {
+
+    alert("⚠️ Nombre obligatorio");
+
+    return;
+  }
+
+  const boton = document.getElementById("btnEnviar");
+
+  const loader = document.getElementById("loader");
+
+  boton.disabled = true;
+
+  boton.innerText = "Enviando...";
+
+  loader.style.display = "block";
+
+  let tipos = [];
+
+  document
+    .querySelectorAll('input[name="tipo"]:checked')
+    .forEach(c => tipos.push(c.value));
+
+  const datos = {
+
+    nombre_coop,
+
+    matricula:
+      document.getElementById("matricula").value,
+
+    cuit:
+      document.getElementById("cuit").value,
+
+    direccion:
+      document.getElementById("direccion").value,
+
+    estado:
+      document.getElementById("estado").value,
+
+    referente_nombre:
+      document.getElementById("referente_nombre").value,
+
+    referente_tel:
+      document.getElementById("referente_tel").value,
+
+    referente_email:
+      document.getElementById("referente_email").value,
+
+    cantidad_asociados:
+      document.getElementById("cantidad_asociados").value,
+
+    rubro:
+      document.getElementById("rubro").value,
+
+    observaciones:
+      document.getElementById("observaciones").value,
+
+    lat,
+    lng,
+
+    operador_nombre:
+      usuario.name,
+
+    operador_email:
+      usuario.email,
+
+    tipo:
+      tipos.join(", ")
+  };
+
+  if (!navigator.onLine) {
+
+    await guardarOffline(datos);
+
+    mostrarToast("📦 Guardado offline");
+
+    resetForm();
+
+    boton.disabled = false;
+
+    boton.innerText = "ENVIAR RELEVAMIENTO";
+
+    loader.style.display = "none";
+
+    return;
+  }
+
+  const fd = new FormData();
+
+  Object.entries(datos).forEach(([k, v]) => {
+    fd.append(k, v);
+  });
+
+  try {
+
+    const res = await fetch(
+      API + "/guardar-cooperativa",
+      {
+        method: "POST",
+        body: fd
+      }
+    );
+
+    if (!res.ok) throw new Error();
+
+    mostrarToast("✅ Enviado correctamente");
+
+    resetForm();
+
+  } catch (e) {
+
+    await guardarOffline(datos);
+
+    mostrarToast("📦 Error de red — guardado offline");
+
+    resetForm();
+  }
+
+  boton.disabled = false;
+
+  boton.innerText = "ENVIAR RELEVAMIENTO";
+
+  loader.style.display = "none";
+}
+
+function resetForm() {
+
+  [
+    "nombre_coop",
+    "matricula",
+    "cuit",
+    "direccion",
+    "referente_nombre",
+    "referente_tel",
+    "referente_email",
+    "cantidad_asociados",
+    "rubro",
+    "observaciones"
+  ].forEach(id => {
+
+    document.getElementById(id).value = "";
+  });
+
+  document.getElementById("estado").value = "";
+
+  document
+    .querySelectorAll('input[name="tipo"]')
+    .forEach(c => c.checked = false);
+
+  document.getElementById("contador").innerText = "0 / 200";
+}
+
+// ───────────────── PWA ─────────────────
+if ('serviceWorker' in navigator) {
+
+  window.addEventListener('load', async () => {
+
+    try {
+
+      await navigator.serviceWorker.register('/sw.js');
+
+      console.log('✅ SW registrado');
+
+    } catch (e) {
+
+      console.error('❌ Error SW', e);
+    }
+  });
+}
+
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', e => {
+
+  e.preventDefault();
+
+  deferredPrompt = e;
+
+  document.getElementById('btn-instalar').style.display = 'flex';
+});
+
+function instalarPWA() {
+
+  if (!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+
+  deferredPrompt.userChoice.then(() => {
+
+    deferredPrompt = null;
+
+    document.getElementById('btn-instalar').style.display = 'none';
+  });
+}
 </script>
 
 </body>
