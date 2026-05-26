@@ -1,164 +1,112 @@
-const CACHE_NAME = "cooperativas-v8";
+const APP_CACHE = "coop-app-v2";
+const TILES_CACHE = "coop-tiles-v1";
 
-const ASSETS = [
+// Archivos del app que se cachean al instalar
+const APP_SHELL = [
   "/",
   "/index.html",
+  "/panel.html",
   "/manifest.json",
   "/icons/icon-192.png",
-  "/icons/icon-512.png",
-
-  // Leaflet local
-  "",
-  "",
-
-  // FontAwesome local
-  ""
+  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
+  "https://unpkg.com/leaflet/dist/leaflet.css",
+  "https://unpkg.com/leaflet/dist/leaflet.js",
 ];
 
-// ======================
-// INSTALL
-// ======================
-self.addEventListener("install", event => {
-  self.skipWaiting();
+// Dominios de tiles de mapa que queremos cachear
+const TILE_HOSTS = [
+  "tile.openstreetmap.org",
+  "server.arcgisonline.com",
+  "basemaps.cartocdn.com",
+  "mt1.google.com",
+  "mt0.google.com",
+  "mt2.google.com",
+  "mt3.google.com",
+  "openstreetmap.fr",
+];
+
+// Tile gris de fallback cuando no hay caché (PNG 256x256 gris)
+const FALLBACK_TILE = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><rect width='256' height='256' fill='%23d1d5db'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%236b7280' font-size='12' font-family='sans-serif'>Sin conexión</text></svg>`;
+
+// ── INSTALL: cachear app shell ────────────────────────────
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache =>
-      // addAll con catch individual para que un fallo no rompa todo
-      Promise.allSettled(ASSETS.map(url => cache.add(url).catch(() => {})))
-    )
+    caches.open(APP_CACHE).then((cache) => {
+      // Cacheamos de a uno para que un fallo no rompa todo
+      return Promise.allSettled(
+        APP_SHELL.map((url) => cache.add(url).catch(() => null))
+      );
+    })
   );
+  self.skipWaiting();
 });
 
-// ======================
-// ACTIVATE
-// ======================
-self.addEventListener("activate", event => {
+// ── ACTIVATE: limpiar cachés viejas ──────────────────────
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME && k !== "map-tiles").map(k => caches.delete(k)))
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((k) => k !== APP_CACHE && k !== TILES_CACHE)
+          .map((k) => caches.delete(k))
+      )
     )
   );
   self.clients.claim();
 });
 
-// ======================
-// FETCH
-// ======================
-self.addEventListener("fetch", event => {
+// ── FETCH: estrategia según tipo de request ───────────────
+self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  const method = event.request.method;
 
-  // POST y otros métodos no-GET: nunca interceptar
-  if (method !== "GET") return;
+  // ¿Es un tile de mapa?
+  const esTile = TILE_HOSTS.some((host) => url.hostname.includes(host));
 
-  // Google APIs: siempre red
-  if (url.hostname.includes("google") ||
-      url.hostname.includes("googleapis") ||
-      url.hostname.includes("gstatic") ||
-      url.hostname.includes("accounts.google")) {
+  if (esTile) {
+    event.respondWith(cacheThenNetwork(event.request));
     return;
   }
 
-  // API propia: network-first, sin cache
-  if (url.hostname.includes("api-cooperativas")) {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        if (url.pathname.includes("/cooperativas")) {
-          return new Response("[]", { headers: { "Content-Type": "application/json" } });
-        }
-        return new Response("OK", { status: 200 });
-      })
-    );
-    return;
-  }
-
-  // Tiles del mapa: cache-first, guarda on-the-fly
-  if (url.hostname.includes("tile") ||
-      url.hostname.includes("arcgisonline") ||
-      url.hostname.includes("cartocdn") ||
-      url.pathname.includes("/vt/lyrs")) {
-    event.respondWith(
-      caches.open("map-tiles").then(cache =>
-        cache.match(event.request).then(cached => {
-          if (cached) return cached;
-          return fetch(event.request).then(res => {
-            if (res && res.status === 200) cache.put(event.request, res.clone());
-            return res;
-          }).catch(() => new Response("", { status: 503 }));
-        })
-      )
-    );
-    return;
-  }
-
-  // Todo lo demás: cache-first
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(res => {
-        if (res && res.status === 200) {
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, res.clone()));
-        }
-        return res;
-      }).catch(() => {
-        if (event.request.mode === "navigate") {
-          return caches.match("/index.html");
-        }
-      });
-    })
-  );
+  // Para el resto: network first, luego caché
+  event.respondWith(networkThenCache(event.request));
 });
 
-// ======================
-// BACKGROUND SYNC
-// ======================
-self.addEventListener("sync", event => {
-  if (event.tag === "sync-cooperativas") {
-    event.waitUntil(syncPendientes());
-  }
-});
+// Cache-first para tiles: sirve desde caché, si no va a red y guarda
+async function cacheThenNetwork(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
 
-async function syncPendientes() {
-  const db = await abrirDB();
-  const pendientes = await obtenerPendientes(db);
-
-  for (const item of pendientes) {
-    try {
-      const fd = new FormData();
-      Object.entries(item.data).forEach(([k, v]) => fd.append(k, v));
-      const res = await fetch(item.url, { method: "POST", body: fd });
-      if (res.ok) await eliminarPendiente(db, item.id);
-    } catch (e) {
-      console.log("📴 Sigue offline, reintentará después");
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(TILES_CACHE);
+      cache.put(request, response.clone());
     }
+    return response;
+  } catch {
+    // Sin conexión y sin caché: devolver tile de fallback
+    return new Response(
+      `<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'>
+        <rect width='256' height='256' fill='#e2e8f0'/>
+        <text x='128' y='128' dominant-baseline='middle' text-anchor='middle'
+          fill='#94a3b8' font-size='11' font-family='sans-serif'>offline</text>
+      </svg>`,
+      { headers: { "Content-Type": "image/svg+xml" } }
+    );
   }
 }
 
-// ======================
-// IndexedDB — mismo nombre que index.html: "coopOfflineDB"
-// ======================
-function abrirDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open("coopOfflineDB", 1);
-    req.onupgradeneeded = e =>
-      e.target.result.createObjectStore("pendientes", { keyPath: "id", autoIncrement: true });
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
-  });
-}
-
-function obtenerPendientes(db) {
-  return new Promise((resolve, reject) => {
-    const req = db.transaction("pendientes", "readonly").objectStore("pendientes").getAll();
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
-  });
-}
-
-function eliminarPendiente(db, id) {
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction("pendientes", "readwrite");
-    tx.objectStore("pendientes").delete(id);
-    tx.oncomplete = resolve;
-    tx.onerror    = reject;
-  });
+// Network-first para el app: intenta red, si falla usa caché
+async function networkThenCache(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(APP_CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    const cached = await caches.match(request);
+    return cached || new Response("Sin conexión", { status: 503 });
+  }
 }
