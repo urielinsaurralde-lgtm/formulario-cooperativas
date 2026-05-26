@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 
 <style>
 :root {
@@ -1159,21 +1160,25 @@ function exportarExcel() {
                      "Referente","Teléfono","Email","Asociados","Rubro","Observaciones",
                      "Lat","Lng","Fecha","Operador"];
 
-  let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
-    xmlns:x="urn:schemas-microsoft-com:office:excel"
-    xmlns="http://www.w3.org/TR/REC-html40">
-    <head><meta charset="utf-8"><style>
-    th { background:#1a3a6b; color:white; }
-    </style></head><body><table>`;
-
-  html += "<tr>" + cabeceras.map(h => `<th>${h}</th>`).join("") + "</tr>";
-  filtradas.forEach(c => {
-    html += "<tr>" + cols.map(col => `<td>${c[col] ?? ""}</td>`).join("") + "</tr>";
+  const filas = filtradas.map(c => {
+    const fila = {};
+    cabeceras.forEach((cab, i) => { fila[cab] = c[cols[i]] ?? ""; });
+    return fila;
   });
-  html += "</table></body></html>";
 
-  const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
-  descargar(blob, "cooperativas.xls");
+  const ws = XLSX.utils.json_to_sheet(filas, { header: cabeceras });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Cooperativas");
+
+  ws["!cols"] = cabeceras.map((_, i) => {
+    const max = Math.max(
+      cabeceras[i].length,
+      ...filtradas.map(c => String(c[cols[i]] ?? "").length)
+    );
+    return { wch: Math.min(max + 2, 40) };
+  });
+
+  XLSX.writeFile(wb, "cooperativas.xlsx");
 }
 
 // ── EXPORTAR GEOJSON ───────────────────────────────────────
