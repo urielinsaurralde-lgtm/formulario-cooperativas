@@ -8,11 +8,11 @@ const ASSETS = [
   "/icons/icon-512.png",
 
   // Leaflet local
-  "/assets/leaflet/leaflet.css",
-  "/assets/leaflet/leaflet.js",
+  "",
+  "",
 
   // FontAwesome local
-  "/assets/fontawesome/css/all.min.css"
+  ""
 ];
 
 // ======================
