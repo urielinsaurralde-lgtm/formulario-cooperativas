@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cooperativas Corrientes — Consulta Pública</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+:root {
+  --azul:       #1a3a6b;
+  --azul-med:   #2563eb;
+  --azul-claro: #dbeafe;
+  --verde:      #059669;
+  --rojo:       #dc2626;
+  --naranja:    #d97706;
+  --gris-bg:    #f3f6fb;
+  --gris-borde: #e2e8f0;
+  --texto:      #0f172a;
+  --texto-sec:  #64748b;
+  --radio:      10px;
+  --sombra:     0 2px 12px rgba(15,23,42,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--gris-bg);
+  color: var(--texto);
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--azul);
+  color: white;
+  padding: 0 28px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.topbar-brand .badge {
+  background: rgba(255,255,255,0.15);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.badge-publico {
+  background: #059669;
+  color: white;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── CONTENIDO ── */
+.contenido {
+  padding: 24px 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ── KPI CARDS ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.kpi {
+  background: white;
+  border-radius: var(--radio);
+  padding: 18px 20px;
+  border: 1px solid var(--gris-borde);
+  box-shadow: var(--sombra);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.kpi-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.kpi-icon.azul   { background: #dbeafe; color: #2563eb; }
+.kpi-icon.verde  { background: #d1fae5; color: #059669; }
+.kpi-icon.naranja{ background: #fef3c7; color: #d97706; }
+
+.kpi-num {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--azul);
+  font-family: 'DM Mono', monospace;
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: var(--texto-sec);
+  margin-top: 3px;
+}
+
+/* ── FILTROS ── */
+.filtros-bar {
+  background: white;
+  border-radius: var(--radio);
+  border: 1px solid var(--gris-borde);
+  box-shadow: var(--sombra);
+  padding: 14px 20px;
+  margin-bottom: 18px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtros-bar input,
+.filtros-bar select {
+  border: 1px solid var(--gris-borde);
+  border-radius: 7px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--texto);
+  background: var(--gris-bg);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.filtros-bar input:focus,
+.filtros-bar select:focus { border-color: var(--azul-med); }
+
+.filtros-bar input  { flex: 1; min-width: 200px; }
+.filtros-bar select { min-width: 160px; }
+
+.total-badge {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--texto-sec);
+  font-family: 'DM Mono', monospace;
+  background: var(--azul-claro);
+  color: var(--azul);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+/* ── TABLA ── */
+.tabla-wrap {
+  background: white;
+  border-radius: var(--radio);
+  border: 1px solid var(--gris-borde);
+  box-shadow: var(--sombra);
+  overflow: hidden;
+}
+
+.tabla-header-bar {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--gris-borde);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tabla-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--azul);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabla-outer {
+  overflow-x: auto;
+  max-height: 540px;
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead th {
+  background: #f8fafc;
+  color: var(--texto-sec);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--gris-borde);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+thead th:hover { background: #f1f5f9; color: var(--azul); }
+
+tbody tr {
+  border-bottom: 1px solid var(--gris-borde);
+  transition: background 0.1s;
+}
+
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover      { background: #f0f7ff; }
+
+tbody td {
+  padding: 12px 16px;
+  color: var(--texto);
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.estado-Activa      { background: #d1fae5; color: #065f46; }
+.estado-Inactiva    { background: #fee2e2; color: #991b1b; }
+.estado-En-formación{ background: #fef3c7; color: #92400e; }
+.estado-Suspendida  { background: #ede9fe; color: #5b21b6; }
+.estado-Disuelta    { background: #f1f5f9; color: #475569; }
+
+/* ── PAGINACIÓN ── */
+.paginacion {
+  padding: 12px 20px;
+  border-top: 1px solid var(--gris-borde);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--texto-sec);
+}
+
+.pag-btns { display: flex; gap: 6px; }
+
+.pag-btn {
+  border: 1px solid var(--gris-borde);
+  background: white;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--texto-sec);
+  transition: all 0.15s;
+}
+
+.pag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pag-btn:hover:not(:disabled) { border-color: var(--azul-med); color: var(--azul-med); }
+
+/* ── EMPTY / LOADER ── */
+.cargando {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--texto-sec);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--azul-claro);
+  border-top-color: var(--azul-med);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--texto-sec);
+  font-size: 13px;
+}
+
+.empty-state i {
+  font-size: 36px;
+  color: var(--gris-borde);
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* ── FOOTER ── */
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 12px;
+  color: var(--texto-sec);
+}
+
+@media (max-width: 600px) {
+  .contenido { padding: 16px; }
+  .topbar    { padding: 0 16px; }
+  .topbar-brand span:not(.badge):not(.badge-publico) { display: none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    🤝 Cooperativas Corrientes
+    <span class="badge">Provincia de Corrientes</span>
+    <span class="badge-publico">🌐 Consulta Pública</span>
+  </div>
+</div>
+
+<!-- CONTENIDO -->
+<div class="contenido">
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-icon azul"><i class="fa fa-building"></i></div>
+      <div>
+        <div class="kpi-num" id="kpi-total">—</div>
+        <div class="kpi-label">Cooperativas registradas</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon verde"><i class="fa fa-circle-check"></i></div>
+      <div>
+        <div class="kpi-num" id="kpi-activas">—</div>
+        <div class="kpi-label">Activas</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon naranja"><i class="fa fa-users"></i></div>
+      <div>
+        <div class="kpi-num" id="kpi-asociados">—</div>
+        <div class="kpi-label">Total asociados</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-bar">
+    <input type="text" id="busqueda" placeholder="🔍 Buscar por nombre, matrícula o dirección..." oninput="filtrar()">
+    <select id="filtro-estado" onchange="filtrar()">
+      <option value="">Todos los estados</option>
+      <option>Activa</option>
+      <option>Inactiva</option>
+      <option>En formación</option>
+      <option>Suspendida</option>
+      <option>Disuelta</option>
+    </select>
+    <span class="total-badge" id="total-badge">0 resultados</span>
+  </div>
+
+  <!-- TABLA -->
+  <div class="tabla-wrap">
+    <div class="tabla-header-bar">
+      <span class="tabla-titulo">
+        <i class="fa fa-table"></i> Listado de cooperativas
+      </span>
+    </div>
+    <div class="tabla-outer">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="ordenar('nombre_coop')">Nombre ↕</th>
+            <th onclick="ordenar('matricula')">Matrícula ↕</th>
+            <th onclick="ordenar('direccion')">Dirección ↕</th>
+            <th onclick="ordenar('estado')">Estado ↕</th>
+            <th onclick="ordenar('cantidad_asociados')">Asociados ↕</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body">
+          <tr><td colspan="5">
+            <div class="cargando"><div class="spinner"></div>Cargando datos...</div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="paginacion">
+      <span id="pag-info">—</span>
+      <div class="pag-btns">
+        <button class="pag-btn" id="btn-prev" onclick="paginar(-1)" disabled>← Anterior</button>
+        <button class="pag-btn" id="btn-next" onclick="paginar(1)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Datos públicos — Ministerio / Secretaría de Cooperativas · Provincia de Corrientes
+</div>
+
+<script>
+const API = "https://api-cooperativas.onrender.com";
+
+let todas = [];
+let filtradas = [];
+let ordenCol = "nombre_coop";
+let ordenAsc  = true;
+let pagina    = 1;
+const POR_PAGINA = 20;
+
+// ── CARGAR ────────────────────────────────────────
+async function cargarDatos() {
+  try {
+    const res = await fetch(API + "/cooperativas");
+    if (!res.ok) throw new Error();
+    todas = await res.json();
+
+    // KPIs
+    document.getElementById("kpi-total").textContent = todas.length;
+    document.getElementById("kpi-activas").textContent =
+      todas.filter(c => c.estado === "Activa").length;
+    document.getElementById("kpi-asociados").textContent =
+      todas.reduce((a, c) => a + (parseInt(c.cantidad_asociados) || 0), 0).toLocaleString("es-AR");
+
+    filtrar();
+  } catch {
+    document.getElementById("tabla-body").innerHTML = `
+      <tr><td colspan="5">
+        <div class="empty-state">
+          <i class="fa fa-triangle-exclamation"></i>
+          No se pudo cargar la información.
+        </div>
+      </td></tr>`;
+  }
+}
+
+// ── FILTRAR ───────────────────────────────────────
+function filtrar() {
+  const busq   = document.getElementById("busqueda").value.toLowerCase();
+  const estado = document.getElementById("filtro-estado").value;
+
+  filtradas = todas.filter(c => {
+    const matchBusq = !busq ||
+      (c.nombre_coop || "").toLowerCase().includes(busq) ||
+      (c.matricula   || "").toLowerCase().includes(busq) ||
+      (c.direccion   || "").toLowerCase().includes(busq);
+    const matchEstado = !estado || c.estado === estado;
+    return matchBusq && matchEstado;
+  });
+
+  ordenarFiltradas();
+  pagina = 1;
+  actualizarTabla();
+}
+
+// ── ORDENAR ───────────────────────────────────────
+function ordenar(col) {
+  if (ordenCol === col) ordenAsc = !ordenAsc;
+  else { ordenCol = col; ordenAsc = true; }
+  ordenarFiltradas();
+  actualizarTabla();
+}
+
+function ordenarFiltradas() {
+  filtradas.sort((a, b) => {
+    let va = a[ordenCol] ?? "";
+    let vb = b[ordenCol] ?? "";
+    if (typeof va === "string") va = va.toLowerCase();
+    if (typeof vb === "string") vb = vb.toLowerCase();
+    if (va < vb) return ordenAsc ? -1 : 1;
+    if (va > vb) return ordenAsc ?  1 : -1;
+    return 0;
+  });
+}
+
+// ── TABLA ─────────────────────────────────────────
+function actualizarTabla() {
+  const inicio    = (pagina - 1) * POR_PAGINA;
+  const paginaData= filtradas.slice(inicio, inicio + POR_PAGINA);
+  const totalPags = Math.ceil(filtradas.length / POR_PAGINA);
+
+  document.getElementById("total-badge").textContent =
+    `${filtradas.length} resultado${filtradas.length !== 1 ? "s" : ""}`;
+  document.getElementById("pag-info").textContent =
+    filtradas.length === 0 ? "Sin resultados"
+    : `${inicio + 1}–${Math.min(inicio + POR_PAGINA, filtradas.length)} de ${filtradas.length}`;
+
+  document.getElementById("btn-prev").disabled = pagina === 1;
+  document.getElementById("btn-next").disabled = pagina >= totalPags;
+
+  if (paginaData.length === 0) {
+    document.getElementById("tabla-body").innerHTML = `
+      <tr><td colspan="5">
+        <div class="empty-state">
+          <i class="fa fa-magnifying-glass"></i>
+          No se encontraron cooperativas con esos filtros.
+        </div>
+      </td></tr>`;
+    return;
+  }
+
+  document.getElementById("tabla-body").innerHTML = paginaData.map(c => {
+    const estadoClass = (c.estado || "").replace(/\s/g, "-");
+    return `<tr>
+      <td><b>${c.nombre_coop || "—"}</b></td>
+      <td>${c.matricula || "—"}</td>
+      <td>${c.direccion || "—"}</td>
+      <td><span class="estado-badge estado-${estadoClass}">${c.estado || "—"}</span></td>
+      <td>${c.cantidad_asociados || "—"}</td>
+    </tr>`;
+  }).join("");
+}
+
+function paginar(dir) {
+  pagina += dir;
+  actualizarTabla();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+window.addEventListener("load", cargarDatos);
+</script>
+
+</body>
+</html>
