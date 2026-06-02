@@ -602,6 +602,240 @@ tbody td {
 .pag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .pag-btn:hover:not(:disabled) { border-color: var(--azul-med); color: var(--azul-med); }
 
+
+/* ── LOGIN OVERLAY ── */
+#login-overlay {
+  position: fixed;
+  inset: 0;
+  background: #1a3a6b;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  background: white;
+  border-radius: 16px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+.login-card h2 {
+  color: #1a3a6b;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.login-card p {
+  color: #64748b;
+  font-size: 13px;
+  margin-bottom: 28px;
+}
+
+.login-field {
+  position: relative;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.login-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.login-field input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0 12px 0 38px;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.login-field input:focus { border-color: #2563eb; background: white; }
+
+.login-field i {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.btn-login {
+  width: 100%;
+  height: 46px;
+  background: #1a3a6b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+
+.btn-login:hover { background: #2563eb; }
+
+.login-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 10px;
+  display: none;
+}
+
+/* ── BOTÓN CERRAR SESIÓN ── */
+.btn-logout {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+  padding: 7px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.2s;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.25); }
+
+/* ── MODAL EDICIÓN ── */
+.modal-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modal-edit-field { display: flex; flex-direction: column; gap: 4px; }
+.modal-edit-field.full { grid-column: 1 / -1; }
+
+.modal-edit-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-edit-field input,
+.modal-edit-field select,
+.modal-edit-field textarea {
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  padding: 8px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.15s;
+  height: auto;
+  padding-left: 10px;
+}
+
+.modal-edit-field input:focus,
+.modal-edit-field select:focus,
+.modal-edit-field textarea:focus { border-color: #2563eb; background: white; }
+
+.modal-edit-field textarea { height: 70px; resize: none; }
+
+.modal-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.tab-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.15s;
+}
+
+.tab-btn.activo {
+  background: #1a3a6b;
+  color: white;
+  border-color: #1a3a6b;
+}
+
+.tab-content { display: none; }
+.tab-content.activo { display: block; }
+
+.btn-guardar {
+  width: 100%;
+  height: 44px;
+  background: #059669;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn-guardar:hover { background: #047857; }
+
+.btn-eliminar {
+  width: 100%;
+  height: 44px;
+  background: white;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.btn-eliminar:hover { background: #dc2626; color: white; }
+
+.save-msg {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 10px;
+  display: none;
+}
+
 </style>
 </head>
 
@@ -614,10 +848,16 @@ tbody td {
     <span class="badge-prov">Provincia de Corrientes</span>
   </div>
   <div class="topbar-right">
+    <a href="/panel-publico.html" target="_blank" style="color:white;font-size:12px;opacity:0.7;text-decoration:none;display:flex;align-items:center;gap:5px;">
+      <i class="fa fa-globe"></i> Ver panel público
+    </a>
     <div class="status-dot" id="statusDot" title="Conectado"></div>
     <span id="statusTxt" style="font-size:12px; opacity:0.7;">Cargando...</span>
     <button class="btn-actualizar" onclick="cargarDatos()">
       <i class="fa fa-rotate-right"></i> Actualizar
+    </button>
+    <button class="btn-logout" onclick="cerrarSesionAdmin()">
+      <i class="fa fa-right-from-bracket"></i> Salir
     </button>
   </div>
 </div>
@@ -759,6 +999,7 @@ tbody td {
             <th onclick="ordenar('referente_nombre')">Referente</th>
             <th onclick="ordenar('fecha')">Fecha</th>
             <th onclick="ordenar('operador_nombre')">Operador</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="tabla-body">
@@ -789,6 +1030,125 @@ tbody td {
       <div class="modal-mini-map" id="modal-map-box" style="display:none">
         <div id="mini-map-modal"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-card">
+    <h2>🔒 Panel Privado</h2>
+    <p>Ingresá tus credenciales para acceder</p>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="inp-usuario" placeholder="Usuario" onkeydown="if(event.key==='Enter') loginAdmin()">
+      <i class="fa fa-user"></i>
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="inp-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter') loginAdmin()">
+      <i class="fa fa-lock"></i>
+    </div>
+    <button class="btn-login" onclick="loginAdmin()">Ingresar</button>
+    <div class="login-error" id="login-error">❌ Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- MODAL EDICIÓN -->
+<div class="modal-overlay" id="modal-edicion">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <h3 id="edit-nombre">Editar cooperativa</h3>
+      <button class="modal-close" onclick="cerrarEdicion()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="tab-btn activo" onclick="cambiarTab('datos', this)">📋 Datos</button>
+        <button class="tab-btn" onclick="cambiarTab('referente', this)">👤 Referente</button>
+        <button class="tab-btn" onclick="cambiarTab('otros', this)">📌 Otros</button>
+      </div>
+
+      <!-- TAB DATOS -->
+      <div class="tab-content activo" id="tab-datos">
+        <div class="modal-edit-grid">
+          <div class="modal-edit-field full">
+            <label>Nombre de la cooperativa *</label>
+            <input id="e-nombre_coop" type="text">
+          </div>
+          <div class="modal-edit-field">
+            <label>Matrícula</label>
+            <input id="e-matricula" type="text">
+          </div>
+          <div class="modal-edit-field">
+            <label>CUIT</label>
+            <input id="e-cuit" type="text">
+          </div>
+          <div class="modal-edit-field full">
+            <label>Dirección</label>
+            <input id="e-direccion" type="text">
+          </div>
+          <div class="modal-edit-field">
+            <label>Tipo</label>
+            <input id="e-tipo" type="text" placeholder="Ej: Trabajo, Vivienda...">
+          </div>
+          <div class="modal-edit-field">
+            <label>Estado</label>
+            <select id="e-estado">
+              <option value="">— Seleccionar —</option>
+              <option>Activa</option>
+              <option>Inactiva</option>
+              <option>En formación</option>
+              <option>Suspendida</option>
+              <option>Disuelta</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB REFERENTE -->
+      <div class="tab-content" id="tab-referente">
+        <div class="modal-edit-grid">
+          <div class="modal-edit-field full">
+            <label>Nombre del referente</label>
+            <input id="e-referente_nombre" type="text">
+          </div>
+          <div class="modal-edit-field">
+            <label>Teléfono</label>
+            <input id="e-referente_tel" type="tel">
+          </div>
+          <div class="modal-edit-field">
+            <label>Email</label>
+            <input id="e-referente_email" type="email">
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB OTROS -->
+      <div class="tab-content" id="tab-otros">
+        <div class="modal-edit-grid">
+          <div class="modal-edit-field">
+            <label>Cantidad de asociados</label>
+            <input id="e-cantidad_asociados" type="number">
+          </div>
+          <div class="modal-edit-field">
+            <label>Rubro / actividad</label>
+            <input id="e-rubro" type="text">
+          </div>
+          <div class="modal-edit-field full">
+            <label>Observaciones</label>
+            <textarea id="e-observaciones" maxlength="200"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-guardar" onclick="guardarEdicion()">
+        <i class="fa fa-floppy-disk"></i> Guardar cambios
+      </button>
+      <button class="btn-eliminar" onclick="eliminarCoop()">
+        <i class="fa fa-trash"></i> Eliminar cooperativa
+      </button>
+      <div class="save-msg" id="save-msg"></div>
     </div>
   </div>
 </div>
@@ -1059,6 +1419,7 @@ function actualizarTabla() {
       <td>${c.referente_nombre || "—"}</td>
       <td>${c.fecha || "—"}</td>
       <td>${c.operador_nombre || "—"}</td>
+      <td><button onclick="event.stopPropagation(); abrirEdicion(${c.id})" style="border:none;background:#dbeafe;color:#1a3a6b;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:600;"><i class='fa fa-pen'></i></button></td>
     </tr>`;
   }).join("");
 
@@ -1280,6 +1641,147 @@ window.onload = () => {
   iniciarMapa();
   cargarDatos();
 };
+
+
+// ── CREDENCIALES ADMIN (cambiar según necesidad) ──────────
+const ADMIN_USER = "admin";
+const ADMIN_PASS = "coop2025";
+
+// ── LOGIN ─────────────────────────────────────────────────
+function loginAdmin() {
+  const u = document.getElementById("inp-usuario").value.trim();
+  const p = document.getElementById("inp-pass").value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    sessionStorage.setItem("admin_auth", "1");
+    document.getElementById("login-overlay").style.display = "none";
+    cargarDatos();
+  } else {
+    document.getElementById("login-error").style.display = "block";
+    document.getElementById("inp-pass").value = "";
+  }
+}
+
+function cerrarSesionAdmin() {
+  sessionStorage.removeItem("admin_auth");
+  location.reload();
+}
+
+// ── EDICIÓN ───────────────────────────────────────────────
+let coopEditandoId = null;
+
+function abrirEdicion(id) {
+  const c = todasLasCoops.find(x => x.id === id);
+  if (!c) return;
+  coopEditandoId = id;
+
+  document.getElementById("edit-nombre").textContent = c.nombre_coop || "Editar cooperativa";
+
+  // Llenar campos
+  const campos = ["nombre_coop","matricula","cuit","direccion","tipo","estado",
+                  "referente_nombre","referente_tel","referente_email",
+                  "cantidad_asociados","rubro","observaciones"];
+  campos.forEach(campo => {
+    const el = document.getElementById("e-" + campo);
+    if (el) el.value = c[campo] || "";
+  });
+
+  // Reset tabs
+  cambiarTab("datos", document.querySelector(".tab-btn.activo") || document.querySelector(".tab-btn"));
+  document.querySelectorAll(".tab-btn").forEach((b,i) => b.classList.toggle("activo", i===0));
+  document.querySelectorAll(".tab-content").forEach((t,i) => t.classList.toggle("activo", i===0));
+
+  document.getElementById("save-msg").style.display = "none";
+  document.getElementById("modal-edicion").classList.add("abierto");
+}
+
+function cerrarEdicion() {
+  document.getElementById("modal-edicion").classList.remove("abierto");
+  coopEditandoId = null;
+}
+
+function cambiarTab(tab, btn) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("activo"));
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("activo"));
+  if (btn) btn.classList.add("activo");
+  const el = document.getElementById("tab-" + tab);
+  if (el) el.classList.add("activo");
+}
+
+async function guardarEdicion() {
+  if (!coopEditandoId) return;
+
+  const nombre = document.getElementById("e-nombre_coop").value.trim();
+  if (!nombre) { alert("El nombre es obligatorio."); return; }
+
+  const datos = {
+    nombre_coop:        nombre,
+    matricula:          document.getElementById("e-matricula").value,
+    cuit:               document.getElementById("e-cuit").value,
+    direccion:          document.getElementById("e-direccion").value,
+    tipo:               document.getElementById("e-tipo").value,
+    estado:             document.getElementById("e-estado").value,
+    referente_nombre:   document.getElementById("e-referente_nombre").value,
+    referente_tel:      document.getElementById("e-referente_tel").value,
+    referente_email:    document.getElementById("e-referente_email").value,
+    cantidad_asociados: document.getElementById("e-cantidad_asociados").value,
+    rubro:              document.getElementById("e-rubro").value,
+    observaciones:      document.getElementById("e-observaciones").value,
+  };
+
+  try {
+    const res = await fetch(API + "/cooperativas/" + coopEditandoId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(datos)
+    });
+    if (!res.ok) throw new Error();
+
+    const msg = document.getElementById("save-msg");
+    msg.textContent = "✅ Guardado correctamente";
+    msg.style.color = "#059669";
+    msg.style.display = "block";
+
+    // Actualizar dato en memoria
+    const idx = todasLasCoops.findIndex(x => x.id === coopEditandoId);
+    if (idx !== -1) todasLasCoops[idx] = { ...todasLasCoops[idx], ...datos };
+
+    filtrar();
+    setTimeout(() => cerrarEdicion(), 1200);
+  } catch {
+    const msg = document.getElementById("save-msg");
+    msg.textContent = "❌ Error al guardar. Verificá la conexión.";
+    msg.style.color = "#dc2626";
+    msg.style.display = "block";
+  }
+}
+
+async function eliminarCoop() {
+  if (!coopEditandoId) return;
+  const c = todasLasCoops.find(x => x.id === coopEditandoId);
+  if (!confirm(`¿Eliminár "${c?.nombre_coop}"? Esta acción no se puede deshacer.`)) return;
+
+  try {
+    const res = await fetch(API + "/cooperativas/" + coopEditandoId, { method: "DELETE" });
+    if (!res.ok) throw new Error();
+    todasLasCoops = todasLasCoops.filter(x => x.id !== coopEditandoId);
+    filtrar();
+    cerrarEdicion();
+  } catch {
+    alert("❌ Error al eliminar. Verificá la conexión.");
+  }
+}
+
+// ── CERRAR MODAL EDICIÓN AL CLICK FUERA ───────────────────
+document.getElementById("modal-edicion").addEventListener("click", e => {
+  if (e.target === document.getElementById("modal-edicion")) cerrarEdicion();
+});
+
+// ── VERIFICAR AUTH AL CARGAR ──────────────────────────────
+if (sessionStorage.getItem("admin_auth") === "1") {
+  document.getElementById("login-overlay").style.display = "none";
+  cargarDatos();
+}
+
 </script>
 </body>
 </html>
