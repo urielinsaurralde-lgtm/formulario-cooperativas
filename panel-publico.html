@@ -598,7 +598,7 @@ function iniciarMapa() {
 }
 
 function cambiarCapa(tipo, btn) {
-  document.querySelectorAll('.btn-capa[onclick*="cambiarCapa"]').forEach(b => b.classList.remove('activo'));
+  document.querySelectorAll('.map-layer-btns .btn-capa').forEach(b => b.classList.remove('activo'));
   btn.classList.add('activo');
   if (capaActual) map.removeLayer(capaActual);
   capaActual = capas[tipo];
@@ -766,7 +766,7 @@ function paginar(dir) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-window.addEventListener("load", () => { iniciarMapa(); cargarDatos(); });
+window.addEventListener('load', () => { iniciarMapa(); cargarDatos(); });
 </script>
 
 </body>
