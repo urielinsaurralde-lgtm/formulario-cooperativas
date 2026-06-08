@@ -1003,7 +1003,7 @@ tbody td {
           </tr>
         </thead>
         <tbody id="tabla-body">
-          <tr><td colspan="10"><div class="cargando"><div class="spinner"></div>Cargando cooperativas...</div></td></tr>
+          <tr><td colspan="11"><div class="cargando"><div class="spinner"></div>Cargando cooperativas...</div></td></tr>
         </tbody>
       </table>
     </div>
@@ -1186,7 +1186,7 @@ function iniciarMapa() {
 }
 
 function cambiarCapa(tipo, btn) {
-  document.querySelectorAll('.btn-capa').forEach(b => b.classList.remove('activo'));
+  document.querySelectorAll('.map-layer-btns .btn-capa').forEach(b => b.classList.remove('activo'));
   btn.classList.add('activo');
   if (capaActual) map.removeLayer(capaActual);
   capaActual = capas[tipo];
@@ -1318,7 +1318,7 @@ async function cargarDatos() {
     document.getElementById("statusDot").style.background = "#dc2626";
     document.getElementById("statusTxt").textContent = "Error de conexión";
     document.getElementById("tabla-body").innerHTML = `
-      <tr><td colspan="10">
+      <tr><td colspan="11">
         <div class="empty-state">
           <i class="fa fa-triangle-exclamation"></i>
           No se pudo conectar con la API.<br>
@@ -1397,7 +1397,7 @@ function actualizarTabla() {
 
   if (pagina.length === 0) {
     document.getElementById("tabla-body").innerHTML = `
-      <tr><td colspan="10">
+      <tr><td colspan="11">
         <div class="empty-state">
           <i class="fa fa-magnifying-glass"></i>
           No se encontraron cooperativas con esos filtros.
@@ -1637,15 +1637,14 @@ function descargar(blob, nombre) {
 }
 
 // ── INIT ───────────────────────────────────────────────────
-window.onload = () => {
+window.addEventListener('load', () => {
   iniciarMapa();
-  cargarDatos();
-};
+});
 
 
 // ── CREDENCIALES ADMIN (cambiar según necesidad) ──────────
 const ADMIN_USER = "admin";
-const ADMIN_PASS = "coop2026";
+const ADMIN_PASS = "coop2025";
 
 // ── LOGIN ─────────────────────────────────────────────────
 function loginAdmin() {
