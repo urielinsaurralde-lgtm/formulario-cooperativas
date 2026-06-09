@@ -539,14 +539,15 @@ tbody td {
         <thead>
           <tr>
             <th onclick="ordenar('nombre_coop')">Nombre ↕</th>
-            <th onclick="ordenar('matricula')">Matrícula ↕</th>
+            <th onclick="ordenar('matricula_provincial')">Mat. Provincial ↕</th>
+            <th onclick="ordenar('matricula_nacional')">Mat. Nacional ↕</th>
             <th onclick="ordenar('direccion')">Dirección ↕</th>
             <th onclick="ordenar('estado')">Estado ↕</th>
             <th onclick="ordenar('cantidad_asociados')">Asociados ↕</th>
           </tr>
         </thead>
         <tbody id="tabla-body">
-          <tr><td colspan="5">
+          <tr><td colspan="6">
             <div class="cargando"><div class="spinner"></div>Cargando datos...</div>
           </td></tr>
         </tbody>
@@ -674,7 +675,7 @@ async function cargarDatos() {
     filtrar();
   } catch {
     document.getElementById("tabla-body").innerHTML = `
-      <tr><td colspan="5">
+      <tr><td colspan="6">
         <div class="empty-state">
           <i class="fa fa-triangle-exclamation"></i>
           No se pudo cargar la información.
@@ -691,7 +692,8 @@ function filtrar() {
   filtradas = todas.filter(c => {
     const matchBusq = !busq ||
       (c.nombre_coop || "").toLowerCase().includes(busq) ||
-      (c.matricula   || "").toLowerCase().includes(busq) ||
+      (c.matricula_provincial || "").toLowerCase().includes(busq) ||
+      (c.matricula_nacional   || "").toLowerCase().includes(busq) ||
       (c.direccion   || "").toLowerCase().includes(busq);
     const matchEstado = !estado || c.estado === estado;
     return matchBusq && matchEstado;
@@ -739,7 +741,7 @@ function actualizarTabla() {
 
   if (paginaData.length === 0) {
     document.getElementById("tabla-body").innerHTML = `
-      <tr><td colspan="5">
+      <tr><td colspan="6">
         <div class="empty-state">
           <i class="fa fa-magnifying-glass"></i>
           No se encontraron cooperativas con esos filtros.
@@ -752,7 +754,8 @@ function actualizarTabla() {
     const estadoClass = (c.estado || "").replace(/\s/g, "-");
     return `<tr>
       <td><b>${c.nombre_coop || "—"}</b></td>
-      <td>${c.matricula || "—"}</td>
+      <td>${c.matricula_provincial || "—"}</td>
+      <td>${c.matricula_nacional || "—"}</td>
       <td>${c.direccion || "—"}</td>
       <td><span class="estado-badge estado-${estadoClass}">${c.estado || "—"}</span></td>
       <td>${c.cantidad_asociados || "—"}</td>
