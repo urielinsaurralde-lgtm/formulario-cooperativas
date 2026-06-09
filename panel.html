@@ -991,11 +991,13 @@ tbody td {
           <tr>
             <th onclick="ordenar('id')">#</th>
             <th onclick="ordenar('nombre_coop')">Nombre ↕</th>
-            <th onclick="ordenar('matricula')">Matrícula</th>
+            <th onclick="ordenar('matricula_provincial')">Mat. Provincial</th>
+            <th onclick="ordenar('matricula_nacional')">Mat. Nacional</th>
             <th onclick="ordenar('tipo')">Tipo</th>
             <th onclick="ordenar('estado')">Estado</th>
             <th onclick="ordenar('cantidad_asociados')">Asociados</th>
-            <th onclick="ordenar('rubro')">Rubro</th>
+            <th onclick="ordenar('departamento')">Departamento</th>
+            <th onclick="ordenar('localidad')">Localidad</th>
             <th onclick="ordenar('referente_nombre')">Referente</th>
             <th onclick="ordenar('fecha')">Fecha</th>
             <th onclick="ordenar('operador_nombre')">Operador</th>
@@ -1077,8 +1079,12 @@ tbody td {
             <input id="e-nombre_coop" type="text">
           </div>
           <div class="modal-edit-field">
-            <label>Matrícula</label>
-            <input id="e-matricula" type="text">
+            <label>Matrícula Provincial</label>
+            <input id="e-matricula_provincial" type="text">
+          </div>
+          <div class="modal-edit-field">
+            <label>Matrícula Nacional</label>
+            <input id="e-matricula_nacional" type="text">
           </div>
           <div class="modal-edit-field">
             <label>CUIT</label>
@@ -1087,6 +1093,18 @@ tbody td {
           <div class="modal-edit-field full">
             <label>Dirección</label>
             <input id="e-direccion" type="text">
+          </div>
+          <div class="modal-edit-field">
+            <label>Código Postal</label>
+            <input id="e-codigo_postal" type="number">
+          </div>
+          <div class="modal-edit-field">
+            <label>Departamento</label>
+            <input id="e-departamento" type="text">
+          </div>
+          <div class="modal-edit-field">
+            <label>Localidad</label>
+            <input id="e-localidad" type="text">
           </div>
           <div class="modal-edit-field">
             <label>Tipo</label>
@@ -1130,10 +1148,6 @@ tbody td {
           <div class="modal-edit-field">
             <label>Cantidad de asociados</label>
             <input id="e-cantidad_asociados" type="number">
-          </div>
-          <div class="modal-edit-field">
-            <label>Rubro / actividad</label>
-            <input id="e-rubro" type="text">
           </div>
           <div class="modal-edit-field full">
             <label>Observaciones</label>
@@ -1337,8 +1351,10 @@ function filtrar() {
     const matchBusq = !busq ||
       (c.nombre_coop || "").toLowerCase().includes(busq) ||
       (c.direccion   || "").toLowerCase().includes(busq) ||
-      (c.rubro       || "").toLowerCase().includes(busq) ||
-      (c.matricula   || "").toLowerCase().includes(busq) ||
+      (c.matricula_provincial || "").toLowerCase().includes(busq) ||
+      (c.matricula_nacional   || "").toLowerCase().includes(busq) ||
+      (c.departamento || "").toLowerCase().includes(busq) ||
+      (c.localidad    || "").toLowerCase().includes(busq) ||
       (c.referente_nombre || "").toLowerCase().includes(busq);
 
     const matchEstado = !estado || c.estado === estado;
@@ -1411,11 +1427,13 @@ function actualizarTabla() {
     return `<tr onclick="abrirModal(${c.id})">
       <td><span style="font-family:'DM Mono',monospace; color:#94a3b8; font-size:12px;">#${c.id}</span></td>
       <td><b>${c.nombre_coop || "—"}</b></td>
-      <td>${c.matricula || "—"}</td>
+      <td>${c.matricula_provincial || "—"}</td>
+      <td>${c.matricula_nacional || "—"}</td>
       <td>${c.tipo || "—"}</td>
       <td><span class="estado-badge estado-${estadoClass}">${c.estado || "—"}</span></td>
       <td>${c.cantidad_asociados || "—"}</td>
-      <td>${c.rubro || "—"}</td>
+      <td>${c.departamento || "—"}</td>
+      <td>${c.localidad || "—"}</td>
       <td>${c.referente_nombre || "—"}</td>
       <td>${c.fecha || "—"}</td>
       <td>${c.operador_nombre || "—"}</td>
@@ -1440,12 +1458,14 @@ function abrirModal(id) {
   document.getElementById("modal-nombre").textContent = c.nombre_coop || "Cooperativa";
 
   const campos = [
-    { label: "Matrícula", val: c.matricula },
+    { label: "Matrícula Provincial", val: c.matricula_provincial },
+    { label: "Matrícula Nacional", val: c.matricula_nacional },
     { label: "CUIT", val: c.cuit },
     { label: "Dirección", val: c.direccion },
     { label: "Tipo", val: c.tipo },
     { label: "Estado", val: c.estado },
-    { label: "Rubro", val: c.rubro },
+    { label: "Departamento", val: c.departamento },
+    { label: "Localidad", val: c.localidad },
     { label: "Asociados", val: c.cantidad_asociados },
     { label: "Referente", val: c.referente_nombre },
     { label: "Teléfono", val: c.referente_tel },
@@ -1494,9 +1514,10 @@ document.getElementById("modal").addEventListener("click", e => {
 
 // ── EXPORTAR CSV ───────────────────────────────────────────
 function exportarCSV() {
-  const cols = ["id","nombre_coop","matricula","cuit","direccion","tipo","estado",
+  const cols = ["id","nombre_coop","matricula_provincial","matricula_nacional","cuit","direccion",
+                "codigo_postal","departamento","localidad","tipo","estado",
                 "referente_nombre","referente_tel","referente_email",
-                "cantidad_asociados","rubro","observaciones","lat","lng","fecha","operador_nombre"];
+                "cantidad_asociados","observaciones","lat","lng","fecha","operador_nombre"];
 
   const cabecera = cols.join(",");
   const filas = filtradas.map(c =>
@@ -1513,12 +1534,14 @@ function exportarCSV() {
 
 // ── EXPORTAR EXCEL (HTML table trick) ─────────────────────
 function exportarExcel() {
-  const cols = ["id","nombre_coop","matricula","cuit","direccion","tipo","estado",
+  const cols = ["id","nombre_coop","matricula_provincial","matricula_nacional","cuit","direccion",
+                "codigo_postal","departamento","localidad","tipo","estado",
                 "referente_nombre","referente_tel","referente_email",
-                "cantidad_asociados","rubro","observaciones","lat","lng","fecha","operador_nombre"];
+                "cantidad_asociados","observaciones","lat","lng","fecha","operador_nombre"];
 
-  const cabeceras = ["ID","Nombre","Matrícula","CUIT","Dirección","Tipo","Estado",
-                     "Referente","Teléfono","Email","Asociados","Rubro","Observaciones",
+  const cabeceras = ["ID","Nombre","Mat. Provincial","Mat. Nacional","CUIT","Dirección",
+                     "Cód. Postal","Departamento","Localidad","Tipo","Estado",
+                     "Referente","Teléfono","Email","Asociados","Observaciones",
                      "Lat","Lng","Fecha","Operador"];
 
   const filas = filtradas.map(c => {
@@ -1555,10 +1578,12 @@ function exportarGeoJSON() {
       properties: {
         id: c.id,
         nombre: c.nombre_coop,
-        matricula: c.matricula,
+        matricula_provincial: c.matricula_provincial,
+        matricula_nacional: c.matricula_nacional,
         tipo: c.tipo,
         estado: c.estado,
-        rubro: c.rubro,
+        departamento: c.departamento,
+        localidad: c.localidad,
         asociados: c.cantidad_asociados,
         referente: c.referente_nombre,
         telefono: c.referente_tel,
@@ -1593,7 +1618,8 @@ function exportarKML() {
       <b>Matrícula:</b> ${c.matricula || "—"}<br>
       <b>Tipo:</b> ${c.tipo || "—"}<br>
       <b>Estado:</b> ${c.estado || "—"}<br>
-      <b>Rubro:</b> ${c.rubro || "—"}<br>
+      <b>Departamento:</b> ${c.departamento || "—"}<br>
+      <b>Localidad:</b> ${c.localidad || "—"}<br>
       <b>Asociados:</b> ${c.cantidad_asociados || "—"}<br>
       <b>Referente:</b> ${c.referente_nombre || "—"}<br>
       <b>Teléfono:</b> ${c.referente_tel || "—"}<br>
@@ -1676,9 +1702,10 @@ function abrirEdicion(id) {
   document.getElementById("edit-nombre").textContent = c.nombre_coop || "Editar cooperativa";
 
   // Llenar campos
-  const campos = ["nombre_coop","matricula","cuit","direccion","tipo","estado",
+  const campos = ["nombre_coop","matricula_provincial","matricula_nacional","cuit",
+                  "direccion","codigo_postal","departamento","localidad","tipo","estado",
                   "referente_nombre","referente_tel","referente_email",
-                  "cantidad_asociados","rubro","observaciones"];
+                  "cantidad_asociados","observaciones"];
   campos.forEach(campo => {
     const el = document.getElementById("e-" + campo);
     if (el) el.value = c[campo] || "";
@@ -1714,16 +1741,19 @@ async function guardarEdicion() {
 
   const datos = {
     nombre_coop:        nombre,
-    matricula:          document.getElementById("e-matricula").value,
+    matricula_provincial: document.getElementById("e-matricula_provincial").value,
+    matricula_nacional:   document.getElementById("e-matricula_nacional").value,
     cuit:               document.getElementById("e-cuit").value,
     direccion:          document.getElementById("e-direccion").value,
+    codigo_postal:      document.getElementById("e-codigo_postal").value,
+    departamento:       document.getElementById("e-departamento").value,
+    localidad:          document.getElementById("e-localidad").value,
     tipo:               document.getElementById("e-tipo").value,
     estado:             document.getElementById("e-estado").value,
     referente_nombre:   document.getElementById("e-referente_nombre").value,
     referente_tel:      document.getElementById("e-referente_tel").value,
     referente_email:    document.getElementById("e-referente_email").value,
     cantidad_asociados: document.getElementById("e-cantidad_asociados").value,
-    rubro:              document.getElementById("e-rubro").value,
     observaciones:      document.getElementById("e-observaciones").value,
   };
 
