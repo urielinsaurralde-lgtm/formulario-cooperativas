@@ -470,7 +470,12 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 
     <div class="input-group">
       <i class="fa fa-hashtag"></i>
-      <input id="matricula" placeholder="Matrícula">
+      <input id="matricula_provincial" placeholder="Matrícula Provincial">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-hashtag"></i>
+      <input id="matricula_nacional" placeholder="Matrícula Nacional">
     </div>
 
     <div class="input-group">
@@ -481,6 +486,21 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
     <div class="input-group">
       <i class="fa fa-map-marker-alt"></i>
       <input id="direccion" placeholder="Dirección">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-mailbox" style="font-size:13px"></i>
+      <input id="codigo_postal" type="number" placeholder="Código Postal">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-map"></i>
+      <input id="departamento" placeholder="Departamento">
+    </div>
+
+    <div class="input-group">
+      <i class="fa fa-city"></i>
+      <input id="localidad" placeholder="Localidad">
     </div>
 
     <!-- TIPO -->
@@ -533,11 +553,6 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
     <div class="input-group">
       <i class="fa fa-users"></i>
       <input id="cantidad_asociados" type="number" placeholder="Cantidad de asociados">
-    </div>
-
-    <div class="input-group">
-      <i class="fa fa-briefcase"></i>
-      <input id="rubro" placeholder="Rubro / actividad principal">
     </div>
 
     <!-- OBSERVACIONES -->
@@ -784,15 +799,18 @@ async function enviar() {
 
   const datos = {
     nombre_coop,
-    matricula:          document.getElementById("matricula").value,
+    matricula_provincial: document.getElementById("matricula_provincial").value,
+    matricula_nacional:   document.getElementById("matricula_nacional").value,
     cuit:               document.getElementById("cuit").value,
     direccion:          document.getElementById("direccion").value,
+    codigo_postal:      document.getElementById("codigo_postal").value,
+    departamento:       document.getElementById("departamento").value,
+    localidad:          document.getElementById("localidad").value,
     estado:             document.getElementById("estado").value,
     referente_nombre:   document.getElementById("referente_nombre").value,
     referente_tel:      document.getElementById("referente_tel").value,
     referente_email:    document.getElementById("referente_email").value,
     cantidad_asociados: document.getElementById("cantidad_asociados").value,
-    rubro:              document.getElementById("rubro").value,
     observaciones:      document.getElementById("observaciones").value,
     lat,
     lng,
@@ -835,8 +853,9 @@ async function enviar() {
 }
 
 function resetForm() {
-  ["nombre_coop","matricula","cuit","direccion","referente_nombre",
-   "referente_tel","referente_email","cantidad_asociados","rubro","observaciones"]
+  ["nombre_coop","matricula_provincial","matricula_nacional","cuit","direccion",
+   "codigo_postal","departamento","localidad","referente_nombre",
+   "referente_tel","referente_email","cantidad_asociados","observaciones"]
     .forEach(id => document.getElementById(id).value = "");
   document.getElementById("estado").value = "";
   document.querySelectorAll('input[name="tipo"]').forEach(c => c.checked = false);
