@@ -632,29 +632,25 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 
     <!-- TIPO -->
     <div class="section-title">Tipo de cooperativa</div>
-    <div class="input-group">
-      <i class="fa fa-tags"></i>
-      <select id="tipo">
-        <option value="" disabled selected>Seleccionar tipo...</option>
-        <option value="Trabajo">Trabajo</option>
-        <option value="Agropecuaria">Agropecuaria</option>
-        <option value="Agrícola">Agrícola</option>
-        <option value="Agrícola Ganadera">Agrícola Ganadera</option>
-        <option value="Agrícola Industrial">Agrícola Industrial</option>
-        <option value="Ganadera">Ganadera</option>
-        <option value="Apícola">Apícola</option>
-        <option value="Vivienda">Vivienda</option>
-        <option value="Vivienda, Crédito y Consumo">Vivienda, Crédito y Consumo</option>
-        <option value="Provisión de Servicios">Provisión de Servicios</option>
-        <option value="Provisión de Servicios Públicos">Provisión de Servicios Públicos</option>
-        <option value="Provisión de Servicios de Salud">Provisión de Servicios de Salud</option>
-        <option value="Consumo">Consumo</option>
-        <option value="Eléctrica y de Servicios">Eléctrica y de Servicios</option>
-        <option value="Tabacaleros">Tabacaleros</option>
-        <option value="Exportadora Citrícola">Exportadora Citrícola</option>
-        <option value="Federación">Federación</option>
-        <option value="Otra">Otra</option>
-      </select>
+    <div class="chips-container" id="chips-tipo">
+      <label class="chip"><input type="radio" name="tipo" value="Trabajo"><span>Trabajo</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Agropecuaria"><span>Agropecuaria</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Agrícola"><span>Agrícola</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Agrícola Ganadera"><span>Agrícola Ganadera</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Agrícola Industrial"><span>Agrícola Industrial</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Ganadera"><span>Ganadera</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Apícola"><span>Apícola</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Vivienda"><span>Vivienda</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Vivienda, Crédito y Consumo"><span>Vivienda, Crédito y Consumo</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Provisión de Servicios"><span>Provisión de Servicios</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Provisión de Servicios Públicos"><span>Provisión de Servicios Públicos</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Provisión de Servicios de Salud"><span>Provisión de Servicios de Salud</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Consumo"><span>Consumo</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Eléctrica y de Servicios"><span>Eléctrica y de Servicios</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Tabacaleros"><span>Tabacaleros</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Exportadora Citrícola"><span>Exportadora Citrícola</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Federación"><span>Federación</span></label>
+      <label class="chip"><input type="radio" name="tipo" value="Otra"><span>Otra</span></label>
     </div>
 
     <!-- ESTADO -->
@@ -1005,7 +1001,7 @@ async function enviar() {
     lng,
     operador_nombre:    usuario.name,
     operador_email:     usuario.email,
-    tipo:               document.getElementById("tipo").value,
+    tipo:               (document.querySelector('input[name="tipo"]:checked') || {}).value || "",
   };
 
   // Sin conexión: guardar localmente
@@ -1047,7 +1043,7 @@ function resetForm() {
    "referente_tel","referente_email","cantidad_asociados","observaciones"]
     .forEach(id => document.getElementById(id).value = "");
   document.getElementById("estado").value = "";
-  document.getElementById("tipo").value = "";
+  document.querySelectorAll('input[name="tipo"]').forEach(r => r.checked = false);
   document.getElementById("contador").innerText = "0 / 200";
 }
 
