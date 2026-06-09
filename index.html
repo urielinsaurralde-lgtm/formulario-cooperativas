@@ -315,6 +315,107 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 
 .required-mark { color: #ef4444; margin-left: 2px; }
 
+
+/* ── SOLAPAS MAPA ── */
+.map-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.map-tab {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #1e3a8a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.map-tab.activo {
+  background: #1e3a8a;
+  color: white;
+  border-color: #1e3a8a;
+}
+
+/* ── PANEL COORDENADAS MANUALES ── */
+.coords-panel {
+  display: none;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border: 1px solid #cbd5e1;
+}
+
+.coords-panel.activo { display: block; }
+
+.coords-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.coords-input-group input {
+  flex: 1;
+  height: 44px;
+  padding-left: 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #1e3a8a;
+  color: white;
+  font-size: 14px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.coords-input-group input::placeholder { color: #93c5fd; }
+
+.btn-ir-coords {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'Segoe UI', sans-serif;
+  transition: background 0.2s;
+  margin-top: 0;
+  width: auto;
+}
+
+.btn-ir-coords:hover { background: #1d4ed8; }
+
+.coords-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+.coords-error {
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 6px;
+  display: none;
+}
+
+.coords-actual {
+  font-size: 12px;
+  color: #059669;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
 /* ── BOTÓN INSTALAR PWA ── */
 #btn-instalar {
   display: none;
@@ -435,6 +536,18 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 
   <!-- MAPA -->
   <div class="map-title">📍 Ubicación de la cooperativa</div>
+
+  <!-- SOLAPAS -->
+  <div class="map-tabs">
+    <button class="map-tab activo" id="tab-mapa" onclick="mostrarTabMapa()">
+      🗺️ Mapa interactivo
+    </button>
+    <button class="map-tab" id="tab-coords" onclick="mostrarTabCoords()">
+      📌 Ingresar coordenadas
+    </button>
+  </div>
+
+  <!-- PANEL MAPA -->
   <div class="map-box" id="mapBox">
     <div id="map"></div>
     <div class="pin"><i class="fa-solid fa-location-dot"></i></div>
@@ -453,6 +566,20 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
     <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla completa">
       <i class="fa-solid fa-expand"></i>
     </button>
+  </div>
+
+  <!-- PANEL COORDENADAS MANUALES -->
+  <div class="coords-panel" id="coordsPanel">
+    <div class="coords-input-group">
+      <input id="inp-coords" type="text" placeholder="-27.4806, -58.8341" 
+             onkeydown="if(event.key==='Enter') irACoordenadas()">
+      <button class="btn-ir-coords" onclick="irACoordenadas()">
+        <i class="fa fa-location-dot"></i> Ir
+      </button>
+    </div>
+    <div class="coords-hint">Ingresá latitud y longitud separadas por coma. Ejemplo: -27.4806, -58.8341</div>
+    <div class="coords-error" id="coords-error">⚠️ Formato inválido. Usá: -27.4806, -58.8341</div>
+    <div class="coords-actual" id="coords-actual"></div>
   </div>
 
   <!-- FORMULARIO -->
@@ -632,6 +759,56 @@ function cambiarCapa(tipo) {
   if (capaActual) map.removeLayer(capaActual);
   capaActual = capas[tipo];
   capaActual.addTo(map);
+}
+
+
+// ── SOLAPAS MAPA ─────────────────────────────────────────
+function mostrarTabMapa() {
+  document.getElementById("mapBox").style.display = "block";
+  document.getElementById("coordsPanel").classList.remove("activo");
+  document.getElementById("tab-mapa").classList.add("activo");
+  document.getElementById("tab-coords").classList.remove("activo");
+  setTimeout(() => map.invalidateSize(), 100);
+}
+
+function mostrarTabCoords() {
+  document.getElementById("mapBox").style.display = "none";
+  document.getElementById("coordsPanel").classList.add("activo");
+  document.getElementById("tab-mapa").classList.remove("activo");
+  document.getElementById("tab-coords").classList.add("activo");
+  // Mostrar coordenadas actuales
+  document.getElementById("coords-actual").textContent =
+    `📍 Posición actual: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+}
+
+function irACoordenadas() {
+  const val = document.getElementById("inp-coords").value.trim();
+  const error = document.getElementById("coords-error");
+  const actual = document.getElementById("coords-actual");
+
+  // Parsear "lat, lng"
+  const partes = val.split(",").map(p => p.trim());
+  if (partes.length !== 2) { error.style.display = "block"; return; }
+
+  const newLat = parseFloat(partes[0]);
+  const newLng = parseFloat(partes[1]);
+
+  if (isNaN(newLat) || isNaN(newLng) ||
+      newLat < -90 || newLat > 90 ||
+      newLng < -180 || newLng > 180) {
+    error.style.display = "block";
+    return;
+  }
+
+  error.style.display = "none";
+  lat = newLat;
+  lng = newLng;
+
+  actual.textContent = `✅ Coordenadas establecidas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+  // Mover el mapa y volver a la solapa del mapa
+  mostrarTabMapa();
+  map.setView([lat, lng], 16);
 }
 
 function irMiUbicacion() {
