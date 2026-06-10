@@ -928,11 +928,44 @@ function irACoordenadas() {
 }
 
 function irMiUbicacion() {
-  navigator.geolocation.getCurrentPosition(p => {
-    lat = p.coords.latitude;
-    lng = p.coords.longitude;
-    map.setView([lat, lng], 16);
-  });
+  if (!navigator.geolocation) {
+    mostrarToast("❌ Tu dispositivo no soporta GPS");
+    return;
+  }
+
+  // Mostrar feedback mientras busca
+  const btn = document.querySelector(".gps-btn i");
+  if (btn) btn.className = "fa-solid fa-spinner fa-spin";
+  mostrarToast("📡 Buscando ubicación...");
+
+  navigator.geolocation.getCurrentPosition(
+    p => {
+      lat = p.coords.latitude;
+      lng = p.coords.longitude;
+      map.setView([lat, lng], 17);
+      if (btn) btn.className = "fa-solid fa-location-crosshairs";
+      mostrarToast("✅ Ubicación encontrada");
+    },
+    err => {
+      if (btn) btn.className = "fa-solid fa-location-crosshairs";
+      switch(err.code) {
+        case 1:
+          mostrarToast("⚠️ Permiso de ubicación denegado. Activalo en configuración.");
+          break;
+        case 2:
+          mostrarToast("⚠️ No se pudo obtener la ubicación. Intentá de nuevo.");
+          break;
+        case 3:
+          mostrarToast("⚠️ Tiempo de espera agotado. Intentá de nuevo.");
+          break;
+      }
+    },
+    {
+      enableHighAccuracy: true,  // Usa GPS real, no WiFi/red
+      timeout: 10000,            // Espera hasta 10 segundos
+      maximumAge: 0              // No usa ubicación cacheada
+    }
+  );
 }
 
 function toggleFullscreen() {
