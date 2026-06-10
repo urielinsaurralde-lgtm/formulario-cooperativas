@@ -416,6 +416,34 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
   font-weight: 600;
 }
 
+
+/* ── CAMPO FOTO ── */
+.foto-preview {
+  display: none;
+  margin-top: 8px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+}
+
+.foto-preview img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.foto-status {
+  font-size: 12px;
+  margin-top: 6px;
+  font-weight: 600;
+  display: none;
+}
+
+.foto-status.subiendo { color: #2563eb; }
+.foto-status.ok       { color: #059669; }
+.foto-status.error    { color: #dc2626; }
+
 /* ── BOTÓN INSTALAR PWA ── */
 #btn-instalar {
   display: none;
@@ -693,6 +721,18 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
       <input id="cantidad_asociados" type="number" placeholder="Cantidad de asociados">
     </div>
 
+    <!-- FOTO -->
+    <div class="section-title">Foto</div>
+    <div class="input-group">
+      <i class="fa fa-camera" style="top:14px;transform:none;"></i>
+      <input type="file" id="foto" accept="image/*" capture="environment"
+             onchange="previsualizarFoto(this)" style="padding-top:10px; padding-bottom:10px; cursor:pointer;">
+    </div>
+    <div class="foto-preview" id="foto-preview">
+      <img id="foto-img" src="">
+    </div>
+    <div class="foto-status" id="foto-status"></div>
+
     <!-- OBSERVACIONES -->
     <div class="section-title">Observaciones</div>
     <div class="input-group">
@@ -714,6 +754,71 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 
 <script>
 const API = "https://api-cooperativas.onrender.com";
+
+
+// ── CLOUDINARY ────────────────────────────────────────────
+const CLOUDINARY_CLOUD = "dlmrfhwcn";
+const CLOUDINARY_PRESET = "coop_preset";
+
+let fotoUrl = null;
+
+function previsualizarFoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // Mostrar preview
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById("foto-img").src = e.target.result;
+    document.getElementById("foto-preview").style.display = "block";
+  };
+  reader.readAsDataURL(file);
+}
+
+async function subirFotoCloudinary(file) {
+  const status = document.getElementById("foto-status");
+  status.textContent = "⏳ Subiendo foto...";
+  status.className = "foto-status subiendo";
+  status.style.display = "block";
+
+  // Nombre con fecha y hora para evitar colisiones
+  const ahora = new Date();
+  const timestamp = ahora.getFullYear().toString() +
+    String(ahora.getMonth()+1).padStart(2,'0') +
+    String(ahora.getDate()).padStart(2,'0') + "_" +
+    String(ahora.getHours()).padStart(2,'0') +
+    String(ahora.getMinutes()).padStart(2,'0') +
+    String(ahora.getSeconds()).padStart(2,'0');
+
+  const nombreArchivo = `coop_${timestamp}`;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_PRESET);
+  formData.append("public_id", nombreArchivo);
+  formData.append("folder", "cooperativas");
+
+  try {
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
+      { method: "POST", body: formData }
+    );
+    const data = await res.json();
+
+    if (data.secure_url) {
+      fotoUrl = data.secure_url;
+      status.textContent = "✅ Foto subida correctamente";
+      status.className = "foto-status ok";
+      return data.secure_url;
+    } else {
+      throw new Error("Sin URL");
+    }
+  } catch (e) {
+    status.textContent = "❌ Error al subir la foto";
+    status.className = "foto-status error";
+    return null;
+  }
+}
 
 // ─── LOGIN ────────────────────────────────────────
 let usuario = null;
@@ -1004,6 +1109,13 @@ async function enviar() {
     tipo:               (document.querySelector('input[name="tipo"]:checked') || {}).value || "",
   };
 
+  // Subir foto a Cloudinary si hay una seleccionada
+  const archivoFoto = document.getElementById("foto").files[0];
+  if (archivoFoto) {
+    const url = await subirFotoCloudinary(archivoFoto);
+    if (url) datos.foto_url = url;
+  }
+
   // Sin conexión: guardar localmente
   if (!navigator.onLine) {
     await guardarOffline(datos);
@@ -1045,6 +1157,10 @@ function resetForm() {
   document.getElementById("estado").value = "";
   document.querySelectorAll('input[name="tipo"]').forEach(r => r.checked = false);
   document.getElementById("contador").innerText = "0 / 200";
+  document.getElementById("foto").value = "";
+  document.getElementById("foto-preview").style.display = "none";
+  document.getElementById("foto-status").style.display = "none";
+  fotoUrl = null;
 }
 
 // ── SERVICE WORKER ────────────────────────────────
