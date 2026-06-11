@@ -599,7 +599,7 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
   <!-- PANEL COORDENADAS MANUALES -->
   <div class="coords-panel" id="coordsPanel">
     <div class="coords-input-group">
-      <input id="inp-coords" type="text" placeholder="-27.4806, -58.8341" 
+      <input id="inp-coords" type="text" placeholder="-27.4806, -58.8341"
              onkeydown="if(event.key==='Enter') irACoordenadas()">
       <button class="btn-ir-coords" onclick="irACoordenadas()">
         <i class="fa fa-location-dot"></i> Ir
@@ -755,45 +755,103 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 <script>
 const API = "https://api-cooperativas.onrender.com";
 
-
 // ── CLOUDINARY ────────────────────────────────────────────
 const CLOUDINARY_CLOUD = "dlmrfhwcn";
 const CLOUDINARY_PRESET = "coop_preset";
 
-let fotoUrl = null;
+let fotoUrl  = null;
+let fotoBlob = null; // Blob comprimido listo para subir
 
+// ── COMPRESIÓN Y PREVIEW DE FOTO ─────────────────────────
 function previsualizarFoto(input) {
   const file = input.files[0];
   if (!file) return;
 
-  // Mostrar preview
+  const status = document.getElementById("foto-status");
+  status.textContent = "⏳ Procesando imagen...";
+  status.className = "foto-status subiendo";
+  status.style.display = "block";
+
+  const img = new Image();
   const reader = new FileReader();
+
   reader.onload = e => {
-    document.getElementById("foto-img").src = e.target.result;
-    document.getElementById("foto-preview").style.display = "block";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+
+      // Limitar dimensiones máximas a 1920px en el lado más largo
+      let w = img.width, h = img.height;
+      const MAX_DIM = 1920;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+        else       { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+      }
+      canvas.width  = w;
+      canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+
+      // Ajuste iterativo de calidad JPEG para quedar entre 300 KB y 600 KB
+      function intentar(q) {
+        canvas.toBlob(blob => {
+          if (!blob) {
+            status.textContent = "❌ Error al procesar la imagen";
+            status.className = "foto-status error";
+            return;
+          }
+
+          const kb = blob.size / 1024;
+
+          if (kb > 600 && q > 0.10) {
+            // Demasiado pesada → bajar calidad
+            intentar(parseFloat((q - 0.10).toFixed(2)));
+          } else if (kb < 300 && q < 0.99) {
+            // Demasiado liviana → subir calidad
+            intentar(parseFloat((q + 0.05).toFixed(2)));
+          } else {
+            // Dentro del rango (o límites de ajuste alcanzados)
+            fotoBlob = blob;
+
+            // Mostrar preview
+            const url = URL.createObjectURL(blob);
+            document.getElementById("foto-img").src = url;
+            document.getElementById("foto-preview").style.display = "block";
+
+            status.textContent = `✅ Imagen lista: ${Math.round(kb)} KB`;
+            status.className = "foto-status ok";
+          }
+        }, "image/jpeg", q);
+      }
+
+      intentar(0.85); // Calidad inicial
+    };
+    img.src = e.target.result;
   };
+
   reader.readAsDataURL(file);
 }
 
+// ── SUBIR FOTO A CLOUDINARY ───────────────────────────────
 async function subirFotoCloudinary(file) {
   const status = document.getElementById("foto-status");
   status.textContent = "⏳ Subiendo foto...";
   status.className = "foto-status subiendo";
   status.style.display = "block";
 
-  // Nombre con fecha y hora para evitar colisiones
+  // Usar el blob comprimido si existe, si no el archivo original
+  const archivoASubir = fotoBlob || file;
+
   const ahora = new Date();
   const timestamp = ahora.getFullYear().toString() +
-    String(ahora.getMonth()+1).padStart(2,'0') +
-    String(ahora.getDate()).padStart(2,'0') + "_" +
-    String(ahora.getHours()).padStart(2,'0') +
-    String(ahora.getMinutes()).padStart(2,'0') +
-    String(ahora.getSeconds()).padStart(2,'0');
+    String(ahora.getMonth() + 1).padStart(2, '0') +
+    String(ahora.getDate()).padStart(2, '0') + "_" +
+    String(ahora.getHours()).padStart(2, '0') +
+    String(ahora.getMinutes()).padStart(2, '0') +
+    String(ahora.getSeconds()).padStart(2, '0');
 
   const nombreArchivo = `coop_${timestamp}`;
 
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", archivoASubir, nombreArchivo + ".jpg");
   formData.append("upload_preset", CLOUDINARY_PRESET);
   formData.append("public_id", nombreArchivo);
   formData.append("folder", "cooperativas");
@@ -877,7 +935,6 @@ function cambiarCapa(tipo) {
   capaActual.addTo(map);
 }
 
-
 // ── SOLAPAS MAPA ─────────────────────────────────────────
 function mostrarTabMapa() {
   document.getElementById("mapBox").style.display = "block";
@@ -892,17 +949,15 @@ function mostrarTabCoords() {
   document.getElementById("coordsPanel").classList.add("activo");
   document.getElementById("tab-mapa").classList.remove("activo");
   document.getElementById("tab-coords").classList.add("activo");
-  // Mostrar coordenadas actuales
   document.getElementById("coords-actual").textContent =
     `📍 Posición actual: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 }
 
 function irACoordenadas() {
-  const val = document.getElementById("inp-coords").value.trim();
-  const error = document.getElementById("coords-error");
+  const val    = document.getElementById("inp-coords").value.trim();
+  const error  = document.getElementById("coords-error");
   const actual = document.getElementById("coords-actual");
 
-  // Parsear "lat, lng"
   const partes = val.split(",").map(p => p.trim());
   if (partes.length !== 2) { error.style.display = "block"; return; }
 
@@ -910,7 +965,7 @@ function irACoordenadas() {
   const newLng = parseFloat(partes[1]);
 
   if (isNaN(newLat) || isNaN(newLng) ||
-      newLat < -90 || newLat > 90 ||
+      newLat < -90  || newLat > 90   ||
       newLng < -180 || newLng > 180) {
     error.style.display = "block";
     return;
@@ -919,10 +974,7 @@ function irACoordenadas() {
   error.style.display = "none";
   lat = newLat;
   lng = newLng;
-
   actual.textContent = `✅ Coordenadas establecidas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-
-  // Mover el mapa y volver a la solapa del mapa
   mostrarTabMapa();
   map.setView([lat, lng], 16);
 }
@@ -933,7 +985,6 @@ function irMiUbicacion() {
     return;
   }
 
-  // Mostrar feedback mientras busca
   const btn = document.querySelector(".gps-btn i");
   if (btn) btn.className = "fa-solid fa-spinner fa-spin";
   mostrarToast("📡 Buscando ubicación...");
@@ -948,23 +999,13 @@ function irMiUbicacion() {
     },
     err => {
       if (btn) btn.className = "fa-solid fa-location-crosshairs";
-      switch(err.code) {
-        case 1:
-          mostrarToast("⚠️ Permiso de ubicación denegado. Activalo en configuración.");
-          break;
-        case 2:
-          mostrarToast("⚠️ No se pudo obtener la ubicación. Intentá de nuevo.");
-          break;
-        case 3:
-          mostrarToast("⚠️ Tiempo de espera agotado. Intentá de nuevo.");
-          break;
+      switch (err.code) {
+        case 1: mostrarToast("⚠️ Permiso de ubicación denegado. Activalo en configuración."); break;
+        case 2: mostrarToast("⚠️ No se pudo obtener la ubicación. Intentá de nuevo."); break;
+        case 3: mostrarToast("⚠️ Tiempo de espera agotado. Intentá de nuevo."); break;
       }
     },
-    {
-      enableHighAccuracy: true,  // Usa GPS real, no WiFi/red
-      timeout: 10000,            // Espera hasta 10 segundos
-      maximumAge: 0              // No usa ubicación cacheada
-    }
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   );
 }
 
@@ -975,14 +1016,12 @@ function toggleFullscreen() {
 
 // ─── INIT ─────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  // Recuperar sesión guardada
   const guardado = localStorage.getItem("usuario_coop");
   if (guardado) {
     usuario = JSON.parse(guardado);
     mostrarUsuario(usuario);
   }
 
-  // Contador observaciones
   document.getElementById("observaciones").addEventListener("input", function () {
     document.getElementById("contador").innerText = this.value.length + " / 200";
   });
@@ -1124,22 +1163,22 @@ async function enviar() {
     nombre_coop,
     matricula_provincial: document.getElementById("matricula_provincial").value,
     matricula_nacional:   document.getElementById("matricula_nacional").value,
-    cuit:               document.getElementById("cuit").value,
-    direccion:          document.getElementById("direccion").value,
-    codigo_postal:      document.getElementById("codigo_postal").value,
-    departamento:       document.getElementById("departamento").value,
-    localidad:          document.getElementById("localidad").value,
-    estado:             document.getElementById("estado").value,
-    referente_nombre:   document.getElementById("referente_nombre").value,
-    referente_tel:      document.getElementById("referente_tel").value,
-    referente_email:    document.getElementById("referente_email").value,
-    cantidad_asociados: document.getElementById("cantidad_asociados").value,
-    observaciones:      document.getElementById("observaciones").value,
+    cuit:                 document.getElementById("cuit").value,
+    direccion:            document.getElementById("direccion").value,
+    codigo_postal:        document.getElementById("codigo_postal").value,
+    departamento:         document.getElementById("departamento").value,
+    localidad:            document.getElementById("localidad").value,
+    estado:               document.getElementById("estado").value,
+    referente_nombre:     document.getElementById("referente_nombre").value,
+    referente_tel:        document.getElementById("referente_tel").value,
+    referente_email:      document.getElementById("referente_email").value,
+    cantidad_asociados:   document.getElementById("cantidad_asociados").value,
+    observaciones:        document.getElementById("observaciones").value,
     lat,
     lng,
-    operador_nombre:    usuario.name,
-    operador_email:     usuario.email,
-    tipo:               (document.querySelector('input[name="tipo"]:checked') || {}).value || "",
+    operador_nombre: usuario.name,
+    operador_email:  usuario.email,
+    tipo: (document.querySelector('input[name="tipo"]:checked') || {}).value || "",
   };
 
   // Subir foto a Cloudinary si hay una seleccionada
@@ -1193,7 +1232,8 @@ function resetForm() {
   document.getElementById("foto").value = "";
   document.getElementById("foto-preview").style.display = "none";
   document.getElementById("foto-status").style.display = "none";
-  fotoUrl = null;
+  fotoUrl  = null;
+  fotoBlob = null; // Limpiar blob comprimido
 }
 
 // ── SERVICE WORKER ────────────────────────────────
