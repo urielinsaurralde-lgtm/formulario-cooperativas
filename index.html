@@ -92,7 +92,7 @@ body {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 #map { width: 100%; height: 100%; }
@@ -105,6 +105,7 @@ body {
   border-radius: 0;
 }
 
+/* Pin centrado: solo visible mientras la ubicación NO está confirmada */
 .pin {
   position: absolute;
   top: 50%; left: 50%;
@@ -112,7 +113,11 @@ body {
   font-size: 28px;
   z-index: 1000;
   color: #2563eb;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
 }
+
+.pin.oculto { opacity: 0; }
 
 .map-controls {
   position: absolute;
@@ -141,6 +146,11 @@ body {
 
 .map-controls button:hover { background: #e5e7eb; }
 
+.map-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .gps-btn {
   position: absolute;
   bottom: 8px; right: 8px;
@@ -154,6 +164,8 @@ body {
   display: flex; align-items: center; justify-content: center;
   margin-top: 0;
 }
+
+.gps-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .gps-btn i { font-size: 16px; color: #2563eb; }
 
@@ -172,6 +184,66 @@ body {
 }
 
 .fullscreen-btn i { font-size: 16px; color: #2563eb; }
+
+/* ─── BARRA DE CONFIRMACIÓN DE UBICACIÓN ─────────── */
+.confirm-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.btn-confirmar-ubic {
+  flex: 1;
+  height: 46px;
+  border-radius: 10px;
+  border: none;
+  background: #059669;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: 'Segoe UI', sans-serif;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-confirmar-ubic:hover { background: #047857; }
+
+.btn-editar-ubic {
+  flex: 1;
+  height: 46px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: white;
+  color: #1e3a8a;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: 'Segoe UI', sans-serif;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-editar-ubic:hover { background: #f1f5f9; }
+
+.ubicacion-confirmada-msg {
+  display: none;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
 
 /* ─── FORMULARIO ─────────────────────────────────── */
 .form {
@@ -418,6 +490,34 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 
 
 /* ── CAMPO FOTO ── */
+.foto-botones {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.foto-btn {
+  flex: 1;
+  height: 46px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #1e3a8a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all 0.2s;
+}
+
+.foto-btn:hover { background: #e2e8f0; }
+
+.foto-btn i { color: #3b82f6; font-size: 15px; }
+
 .foto-preview {
   display: none;
   margin-top: 8px;
@@ -578,7 +678,7 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
   <!-- PANEL MAPA -->
   <div class="map-box" id="mapBox">
     <div id="map"></div>
-    <div class="pin"><i class="fa-solid fa-location-dot"></i></div>
+    <div class="pin" id="pinCentro"><i class="fa-solid fa-location-dot"></i></div>
 
     <div class="map-controls">
       <button onclick="cambiarCapa('mapa')" title="Mapa">🗺️</button>
@@ -587,13 +687,29 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
       <button onclick="cambiarCapa('google')" title="Google">🟡</button>
     </div>
 
-    <button class="gps-btn" onclick="irMiUbicacion()" title="Mi ubicación">
+    <button class="gps-btn" id="btnGps" onclick="irMiUbicacion()" title="Mi ubicación">
       <i class="fa-solid fa-location-crosshairs"></i>
     </button>
 
     <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla completa">
       <i class="fa-solid fa-expand"></i>
     </button>
+  </div>
+
+  <!-- BARRA CONFIRMAR / EDITAR UBICACIÓN -->
+  <div class="confirm-bar" id="confirmBar">
+    <button class="btn-confirmar-ubic" id="btnConfirmarUbic" onclick="confirmarUbicacion()">
+      <i class="fa-solid fa-check"></i> Confirmar esta ubicación
+    </button>
+  </div>
+  <div class="confirm-bar" id="editarBar" style="display:none;">
+    <button class="btn-editar-ubic" onclick="editarUbicacion()">
+      <i class="fa-solid fa-pen"></i> Cambiar ubicación
+    </button>
+  </div>
+
+  <div class="ubicacion-confirmada-msg" id="msgUbicConfirmada">
+    ✅ Ubicación confirmada — el pin quedó fijo en este punto
   </div>
 
   <!-- PANEL COORDENADAS MANUALES -->
@@ -723,11 +839,20 @@ button#btnEnviar:disabled { background: #93c5fd; cursor: not-allowed; }
 
     <!-- FOTO -->
     <div class="section-title">Foto</div>
-    <div class="input-group">
-      <i class="fa fa-camera" style="top:14px;transform:none;"></i>
-      <input type="file" id="foto" accept="image/*" capture="environment"
-             onchange="previsualizarFoto(this)" style="padding-top:10px; padding-bottom:10px; cursor:pointer;">
+    <div class="foto-botones">
+      <button type="button" class="foto-btn" onclick="document.getElementById('foto-camara').click()">
+        <i class="fa-solid fa-camera"></i> Tomar foto
+      </button>
+      <button type="button" class="foto-btn" onclick="document.getElementById('foto-galeria').click()">
+        <i class="fa-solid fa-image"></i> Elegir de galería
+      </button>
     </div>
+    <!-- Input con cámara directa (capture) -->
+    <input type="file" id="foto-camara" accept="image/*" capture="environment"
+           onchange="previsualizarFoto(this)" style="display:none;">
+    <!-- Input sin capture: el navegador ofrece galería/archivos (y a veces también cámara) -->
+    <input type="file" id="foto-galeria" accept="image/*"
+           onchange="previsualizarFoto(this)" style="display:none;">
     <div class="foto-preview" id="foto-preview">
       <img id="foto-img" src="">
     </div>
@@ -761,11 +886,18 @@ const CLOUDINARY_PRESET = "coop_preset";
 
 let fotoUrl  = null;
 let fotoBlob = null; // Blob comprimido listo para subir
+let fotoFile = null; // Referencia al archivo original elegido (cámara o galería)
 
 // ── COMPRESIÓN Y PREVIEW DE FOTO ─────────────────────────
 function previsualizarFoto(input) {
   const file = input.files[0];
   if (!file) return;
+
+  fotoFile = file;
+
+  // Si se elige una foto desde el otro input (cámara/galería), limpiarlo para evitar confusión
+  const otroId = input.id === "foto-camara" ? "foto-galeria" : "foto-camara";
+  document.getElementById(otroId).value = "";
 
   const status = document.getElementById("foto-status");
   status.textContent = "⏳ Procesando imagen...";
@@ -910,6 +1042,8 @@ function handleCredentialResponse(response) {
 
 // ─── MAPA ─────────────────────────────────────────
 let map, lat = -27.48, lng = -58.83, capaActual, capas = {};
+let ubicacionConfirmada = false;
+let marcadorFijo = null; // Marcador de Leaflet que se muestra una vez confirmada la ubicación
 
 function iniciarMapa() {
   map = L.map('map').setView([lat, lng], 14);
@@ -925,7 +1059,13 @@ function iniciarMapa() {
   capaActual = google;
   capaActual.addTo(map);
 
-  map.on("move", () => { let c = map.getCenter(); lat = c.lat; lng = c.lng; });
+  map.on("move", () => {
+    if (ubicacionConfirmada) return; // Con la ubicación confirmada, no se actualizan lat/lng al mover el mapa
+    let c = map.getCenter();
+    lat = c.lat;
+    lng = c.lng;
+  });
+
   irMiUbicacion();
 }
 
@@ -935,12 +1075,78 @@ function cambiarCapa(tipo) {
   capaActual.addTo(map);
 }
 
+// ── CONFIRMAR / EDITAR UBICACIÓN ──────────────────────────
+function confirmarUbicacion() {
+  ubicacionConfirmada = true;
+
+  // Ocultar el pin centrado (CSS) y colocar un marcador real de Leaflet en el punto fijado
+  document.getElementById("pinCentro").classList.add("oculto");
+
+  if (marcadorFijo) map.removeLayer(marcadorFijo);
+  const icono = L.divIcon({
+    html: '<i class="fa-solid fa-location-dot" style="font-size:28px;color:#059669;"></i>',
+    className: "",
+    iconSize: [28, 28],
+    iconAnchor: [14, 28]
+  });
+  marcadorFijo = L.marker([lat, lng], { icon: icono, interactive: false }).addTo(map);
+
+  // Bloquear interacción del mapa para que no se pueda mover el punto sin querer
+  map.dragging.disable();
+  map.scrollWheelZoom.disable();
+  map.doubleClickZoom.disable();
+  map.touchZoom.disable();
+  map.boxZoom.disable();
+  map.keyboard.disable();
+
+  document.getElementById("btnGps").disabled = true;
+
+  document.getElementById("confirmBar").style.display = "none";
+  document.getElementById("editarBar").style.display = "flex";
+  document.getElementById("msgUbicConfirmada").style.display = "block";
+
+  mostrarToast("✅ Ubicación confirmada");
+}
+
+function editarUbicacion() {
+  ubicacionConfirmada = false;
+
+  if (marcadorFijo) { map.removeLayer(marcadorFijo); marcadorFijo = null; }
+  document.getElementById("pinCentro").classList.remove("oculto");
+
+  // Reactivar interacción del mapa
+  map.dragging.enable();
+  map.scrollWheelZoom.enable();
+  map.doubleClickZoom.enable();
+  map.touchZoom.enable();
+  map.boxZoom.enable();
+  map.keyboard.enable();
+
+  document.getElementById("btnGps").disabled = false;
+
+  document.getElementById("confirmBar").style.display = "flex";
+  document.getElementById("editarBar").style.display = "none";
+  document.getElementById("msgUbicConfirmada").style.display = "none";
+
+  // Re-centrar el mapa en el punto que estaba fijado, para seguir ajustando desde ahí
+  map.setView([lat, lng], map.getZoom());
+}
+
 // ── SOLAPAS MAPA ─────────────────────────────────────────
 function mostrarTabMapa() {
   document.getElementById("mapBox").style.display = "block";
   document.getElementById("coordsPanel").classList.remove("activo");
   document.getElementById("tab-mapa").classList.add("activo");
   document.getElementById("tab-coords").classList.remove("activo");
+
+  if (ubicacionConfirmada) {
+    document.getElementById("confirmBar").style.display = "none";
+    document.getElementById("editarBar").style.display = "flex";
+  } else {
+    document.getElementById("confirmBar").style.display = "flex";
+    document.getElementById("editarBar").style.display = "none";
+  }
+
   setTimeout(() => map.invalidateSize(), 100);
 }
 
@@ -949,6 +1155,8 @@ function mostrarTabCoords() {
   document.getElementById("coordsPanel").classList.add("activo");
   document.getElementById("tab-mapa").classList.remove("activo");
   document.getElementById("tab-coords").classList.add("activo");
+  document.getElementById("confirmBar").style.display = "none";
+  document.getElementById("editarBar").style.display = "none";
   document.getElementById("coords-actual").textContent =
     `📍 Posición actual: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 }
@@ -972,6 +1180,10 @@ function irACoordenadas() {
   }
 
   error.style.display = "none";
+
+  // Si había una ubicación confirmada, ingresar coordenadas nuevas la deja sin confirmar de nuevo
+  if (ubicacionConfirmada) editarUbicacion();
+
   lat = newLat;
   lng = newLng;
   actual.textContent = `✅ Coordenadas establecidas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
@@ -980,6 +1192,8 @@ function irACoordenadas() {
 }
 
 function irMiUbicacion() {
+  if (ubicacionConfirmada) return; // No mover el pin si la ubicación ya está confirmada
+
   if (!navigator.geolocation) {
     mostrarToast("❌ Tu dispositivo no soporta GPS");
     return;
@@ -1182,7 +1396,7 @@ async function enviar() {
   };
 
   // Subir foto a Cloudinary si hay una seleccionada
-  const archivoFoto = document.getElementById("foto").files[0];
+  const archivoFoto = fotoFile;
   if (archivoFoto) {
     const url = await subirFotoCloudinary(archivoFoto);
     if (url) datos.foto_url = url;
@@ -1229,11 +1443,16 @@ function resetForm() {
   document.getElementById("estado").value = "";
   document.querySelectorAll('input[name="tipo"]').forEach(r => r.checked = false);
   document.getElementById("contador").innerText = "0 / 200";
-  document.getElementById("foto").value = "";
+  document.getElementById("foto-camara").value = "";
+  document.getElementById("foto-galeria").value = "";
   document.getElementById("foto-preview").style.display = "none";
   document.getElementById("foto-status").style.display = "none";
   fotoUrl  = null;
   fotoBlob = null; // Limpiar blob comprimido
+  fotoFile = null;
+
+  // Volver el mapa a estado editable para el próximo relevamiento
+  editarUbicacion();
 }
 
 // ── SERVICE WORKER ────────────────────────────────
