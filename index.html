@@ -893,101 +893,98 @@ let fotoFile = null; // Referencia al archivo original elegido (cámara o galer�
 
 // ── COMPRESIÓN Y PREVIEW DE FOTO ─────────────────────────
 function previsualizarFoto(input) {
-
   const file = input.files[0];
-
   if (!file) return;
 
   fotoFile = file;
 
   const status = document.getElementById("foto-status");
-
   status.textContent = "⏳ Procesando imagen...";
   status.className = "foto-status subiendo";
   status.style.display = "block";
 
+  // Archivos menores a 800KB se usan directo, sin canvas
+  // Esto evita el error de memoria en celulares con poca RAM
+  if (file.size < 800 * 1024) {
+    fotoBlob = file;
+    const url = URL.createObjectURL(file);
+    document.getElementById("foto-img").src = url;
+    document.getElementById("foto-preview").style.display = "block";
+    status.textContent = `✅ Imagen lista: ${Math.round(file.size / 1024)} KB`;
+    status.className = "foto-status ok";
+    return;
+  }
+
   const img = new Image();
   const reader = new FileReader();
 
+  reader.onerror = () => {
+    fotoBlob = file;
+    status.textContent = `⚠️ Se usará la imagen original: ${Math.round(file.size / 1024)} KB`;
+    status.className = "foto-status ok";
+  };
+
   reader.onload = e => {
+    img.onerror = () => {
+      fotoBlob = file;
+      status.textContent = `⚠️ Se usará la imagen original: ${Math.round(file.size / 1024)} KB`;
+      status.className = "foto-status ok";
+    };
 
     img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
 
-      const canvas = document.createElement("canvas");
+        // Máximo 1280px para reducir uso de memoria en celulares de gama baja
+        let w = img.width;
+        let h = img.height;
+        const MAX_DIM = 1280;
 
-      // Limitar dimensiones máximas
-      let w = img.width;
-      let h = img.height;
-
-      const MAX_DIM = 1920;
-
-      if (w > MAX_DIM || h > MAX_DIM) {
-
-        if (w > h) {
-          h = Math.round(h * MAX_DIM / w);
-          w = MAX_DIM;
-        } else {
-          w = Math.round(w * MAX_DIM / h);
-          h = MAX_DIM;
+        if (w > MAX_DIM || h > MAX_DIM) {
+          if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+          else        { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
         }
-      }
 
-      canvas.width = w;
-      canvas.height = h;
+        canvas.width  = w;
+        canvas.height = h;
 
-      const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
 
-      ctx.drawImage(img, 0, 0, w, h);
-
-      function intentar(q) {
-
+        // Calidad fija 0.75 — sin iterar, menos memoria
         canvas.toBlob(blob => {
-
           if (!blob) {
-
-            status.textContent = "❌ Error al procesar la imagen";
-            status.className = "foto-status error";
-
+            fotoBlob = file;
+            document.getElementById("foto-img").src = URL.createObjectURL(file);
+            document.getElementById("foto-preview").style.display = "block";
+            status.textContent = `⚠️ Se usará la imagen original: ${Math.round(file.size / 1024)} KB`;
+            status.className = "foto-status ok";
             return;
           }
 
-          const kb = blob.size / 1024;
+          fotoBlob = blob;
+          document.getElementById("foto-img").src = URL.createObjectURL(blob);
+          document.getElementById("foto-preview").style.display = "block";
+          status.textContent = `✅ Imagen lista: ${Math.round(blob.size / 1024)} KB`;
+          status.className = "foto-status ok";
 
-          // Muy pesada
-          if (kb > 600 && q > 0.10) {
+          // Liberar memoria del canvas
+          canvas.width = 0;
+          canvas.height = 0;
 
-            intentar(parseFloat((q - 0.10).toFixed(2)));
+        }, "image/jpeg", 0.75);
 
-          // Muy liviana
-          } else if (kb < 300 && q < 0.99) {
-
-            intentar(parseFloat((q + 0.05).toFixed(2)));
-
-          } else {
-
-            fotoBlob = blob;
-
-            // PREVIEW
-            const url = URL.createObjectURL(blob);
-
-            document.getElementById("foto-img").src = url;
-
-            document.getElementById("foto-preview").style.display = "block";
-
-            status.textContent = `✅ Imagen lista: ${Math.round(kb)} KB`;
-            status.className = "foto-status ok";
-          }
-
-        }, "image/jpeg", q);
-
+      } catch (err) {
+        // Error de memoria — usar original sin procesar
+        fotoBlob = file;
+        document.getElementById("foto-img").src = URL.createObjectURL(file);
+        document.getElementById("foto-preview").style.display = "block";
+        status.textContent = `⚠️ Se usará la imagen original: ${Math.round(file.size / 1024)} KB`;
+        status.className = "foto-status ok";
       }
-
-      intentar(0.85);
-
     };
 
     img.src = e.target.result;
-
   };
 
   reader.readAsDataURL(file);
